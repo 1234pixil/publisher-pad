@@ -1,0 +1,2012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Publisher Pad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f1f3ef; --surface: #ffffff; --surface-2: #e8ece6; --ink: #15201b; --muted: #58675f;
+  --line: #d3dad3; --accent: #0d7152; --accent-ink: #ffffff; --live: #139b67; --live-soft: #dcf2e7;
+  --warn: #a8501c; --warn-soft: #fbe9dd; --frame: #dde2dc;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #0e1311; --surface: #151c19; --surface-2: #1c2521; --ink: #e4ebe7; --muted: #92a29a;
+    --line: #2a3530; --accent: #3cc497; --accent-ink: #06231a; --live: #45d19f; --live-soft: #173228;
+    --warn: #f0a070; --warn-soft: #3a2418; --frame: #0a0e0c;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 'IBM Plex Sans', system-ui, sans-serif; }
+[hidden] { display: none !important; }
+.mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+.shell { max-width: 1240px; margin: 0 auto; padding-inline: 20px; padding-block: 0 48px; }
+button, input, textarea, select { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+a { color: var(--accent); }
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 18px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: 'Bricolage Grotesque', 'IBM Plex Sans', sans-serif; font-weight: 700; font-size: 1.25rem; }
+.brand-mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); position: relative; }
+.brand-mark::after { content: ""; position: absolute; left: 8px; top: 5px; border-left: 11px solid var(--accent-ink); border-top: 8px solid transparent; border-bottom: 8px solid transparent; }
+.count { font-size: 0.85rem; color: var(--muted); }
+
+.intro { padding-block: 36px 24px; display: grid; gap: 10px; }
+h1 { font-family: 'Bricolage Grotesque', 'IBM Plex Sans', sans-serif; font-weight: 700; font-size: clamp(1.9rem, 4vw, 2.8rem); line-height: 1.08; letter-spacing: -0.02em; margin: 0; text-wrap: balance; max-width: 18em; }
+h2 { font-family: 'Bricolage Grotesque', 'IBM Plex Sans', sans-serif; font-size: 1.3rem; margin: 0; }
+.intro p { margin: 0; color: var(--muted); max-width: 62ch; }
+
+.work { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; min-height: 500px; overflow: hidden; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.step { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; color: var(--muted); }
+.seg { display: flex; background: var(--surface-2); border-radius: 8px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+
+.drop { margin: 14px 14px 0; border: 1.5px dashed var(--line); border-radius: 10px; padding: 18px; display: flex; align-items: center; gap: 14px; cursor: pointer; }
+.drop:hover, .drop.over { border-color: var(--accent); background: var(--live-soft); }
+.drop-icon { flex: none; width: 38px; height: 46px; border: 1.5px solid var(--muted); border-radius: 4px 12px 4px 4px; display: grid; place-items: center; font: 600 0.62rem 'IBM Plex Mono', monospace; color: var(--muted); }
+.drop strong { display: block; }
+.drop small { color: var(--muted); }
+.loaded { margin: 8px 14px 0; font-size: 0.82rem; color: var(--live); min-height: 1.3em; }
+textarea { flex: 1; min-height: 340px; margin: 10px 14px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 12px; resize: vertical; font: 0.8rem/1.6 'IBM Plex Mono', ui-monospace, monospace; }
+
+.browser { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+.browser .dots { display: flex; gap: 5px; flex: none; }
+.browser .dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.addr { flex: 1; min-width: 0; background: var(--surface); border-radius: 6px; padding: 4px 10px; font-size: 0.75rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stage { flex: 1; background: var(--frame); display: flex; justify-content: center; }
+.stage iframe { width: 100%; height: 100%; min-height: 440px; border: 0; background: #fff; }
+.stage.phone { padding-block: 14px; }
+.stage.phone iframe { max-width: 390px; border-radius: 16px; box-shadow: 0 0 0 8px var(--ink); }
+
+.dest { margin-top: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.dest-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.dest-body { padding: 14px; display: grid; gap: 12px; }
+.fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.field { display: grid; gap: 4px; }
+.field label { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+.field input { border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 10px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 0.9rem; min-width: 0; width: 100%; }
+.field small { color: var(--muted); font-size: 0.8rem; }
+.check { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--muted); }
+.actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--surface); padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 500; white-space: nowrap; text-decoration: none; color: var(--ink); display: inline-block; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.howto { font-size: 0.85rem; color: var(--muted); margin: 0; padding-left: 18px; }
+.howto li { margin-block: 2px; }
+
+.log { font: 0.8rem/1.7 'IBM Plex Mono', monospace; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; max-height: 220px; overflow: auto; }
+.log .ok { color: var(--live); }
+.log .err { color: var(--warn); }
+.notice { border-radius: 10px; padding: 12px 14px; font-size: 0.9rem; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.notice.ok { background: var(--live-soft); }
+.notice.err { background: var(--warn-soft); }
+.notice .url { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; word-break: break-all; }
+
+.sites { margin-top: 28px; }
+.sites-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+.sites-head small { color: var(--muted); }
+.list { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.row:first-child { border-top: 0; }
+.pill { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--live); background: var(--live-soft); padding: 3px 9px; border-radius: 999px; }
+.row-main { min-width: 0; }
+.row-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-meta { font-size: 0.8rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.row-actions a, .row-actions button { font-size: 0.85rem; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--line); background: none; cursor: pointer; text-decoration: none; color: var(--ink); }
+.empty { padding: 26px 16px; color: var(--muted); text-align: center; }
+.embedded-warn { margin-top: 16px; }
+.site-view { position: fixed; inset: 0; background: #fff; z-index: 50; }
+.site-view iframe { width: 100%; height: 100%; border: 0; display: block; }
+.site-badge { position: fixed; right: 12px; bottom: 12px; z-index: 51; display: flex; align-items: center; gap: 6px; background: rgba(21,32,27,0.86); color: #e4ebe7; font: 500 0.75rem 'IBM Plex Sans', sans-serif; padding: 6px 8px 6px 12px; border-radius: 999px; }
+.site-badge a { color: inherit; text-decoration: none; }
+.site-badge button { border: 0; background: none; color: inherit; cursor: pointer; padding: 0 4px; font-size: 0.9rem; line-height: 1; }
+.linkbox { width: 100%; min-height: 70px; margin: 0; flex: none; font: 0.75rem/1.5 'IBM Plex Mono', monospace; word-break: break-all; }
+
+.btn.primary.rainbow-btn {
+  border: none;
+  color: #fff;
+  background: linear-gradient(90deg, #ff2d55, #ff9500, #ffe600, #34c759, #00c7ff, #5856d6, #ff2d55);
+  background-size: 400% 100%;
+  animation: rainbow-move 6s linear infinite;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+}
+.btn.primary.rainbow-btn:hover { border-color: transparent; filter: brightness(1.08); }
+@keyframes rainbow-move {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 400% 50%; }
+}
+
+@media (max-width: 880px) {
+  .work, .fields { grid-template-columns: 1fr; }
+  .panel { min-height: 0; }
+  .row { grid-template-columns: minmax(0, 1fr); }
+  .row-actions { justify-content: flex-start; }
+}
+
+.dbg{margin-top:16px}.dbg h3{font-family:'Bricolage Grotesque','IBM Plex Sans',sans-serif;font-size:1.05rem;margin:18px 0 8px}
+.dbg .bar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.dcon{background:#0a0e0c;color:#d7e2dc;border-radius:10px;padding:10px;font:12.5px/1.5 'IBM Plex Mono',ui-monospace,monospace;max-height:180px;overflow:auto;white-space:pre-wrap;word-break:break-word}
+.dcon .e{color:#ff8a8a}.dcon .w{color:#f2c14e}.dcon .i{color:#7fd6a6}
+.iss{display:grid;gap:8px}.it{display:flex;gap:10px;padding:10px 12px;border:1px solid var(--line);border-left-width:4px;border-radius:10px;background:var(--surface)}
+.it.error{border-left-color:#d6293e}.it.warn{border-left-color:#c98a00}.it.ok{border-left-color:var(--live)}
+.it small{display:block;color:var(--muted)}
+.ls{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;width:100%;background:var(--surface);text-align:left;margin-bottom:8px}
+.ls.act{border-color:var(--accent)}.ls .lv{font-size:.75rem;color:var(--muted);margin-left:auto}
+.ls .ck{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:12px;flex:none}
+.ls.dn .ck{background:var(--live);border-color:var(--live);color:#fff}
+.ld{border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--surface)}
+.ld pre{background:#0a0e0c;color:#d7e2dc;border-radius:8px;padding:10px;overflow-x:auto;font:12.5px/1.5 'IBM Plex Mono',monospace;margin:8px 0}
+.ld .bx{padding:10px 12px;border-radius:9px;background:var(--surface-2);margin:8px 0}
+.prog{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin:8px 0 12px}.prog i{display:block;height:100%;background:var(--live);transition:width .3s}
+
+.goog-te-banner-frame,.skiptranslate>iframe,#goog-gt-tt{display:none!important}body{top:0!important}
+#gt_el{position:absolute;left:-9999px;top:0;height:0;overflow:hidden}
+#tr-sel{padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);max-width:150px}
+#tr-note{font-size:.8rem;color:var(--warn);background:var(--warn-soft);padding:6px 12px;border-radius:8px;margin:8px 0}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"></span>Publisher Pad</div>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <a class="btn primary rainbow-btn" href="https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=binu2star1@gmail.com&item_name=Support+us&currency_code=USD&no_shipping=1" target="_blank" rel="noopener">Support us</a>
+      <button class="btn" id="account-btn" type="button">Log in</button>
+      <span class="count" id="count"></span>
+    </div>
+  </header>
+
+  <div id="auth-overlay" hidden style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;">
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:100%;max-width:360px;padding:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div class="seg">
+          <button type="button" id="auth-tab-login" aria-pressed="true">Log in</button>
+          <button type="button" id="auth-tab-signup" aria-pressed="false">Sign up</button>
+        </div>
+        <button type="button" id="auth-close" style="border:0;background:none;cursor:pointer;font-size:1.1rem;color:var(--muted);">✕</button>
+      </div>
+      <div id="auth-fields">
+        <div class="field" style="margin-bottom:10px;">
+          <label for="auth-email">Email</label>
+          <input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com">
+        </div>
+        <div class="field" style="margin-bottom:12px;">
+          <label for="auth-password">Password</label>
+          <input id="auth-password" type="password" autocomplete="current-password" placeholder="••••••••">
+        </div>
+      </div>
+      <div id="auth-verify-fields" hidden>
+        <p style="font-size:0.85rem;color:var(--muted);margin:0 0 10px;">We emailed a 6-digit code to <span id="auth-verify-email"></span>. Enter it below to confirm your account.</p>
+        <div class="field" style="margin-bottom:12px;">
+          <label for="auth-code">Confirmation code</label>
+          <input id="auth-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456">
+        </div>
+      </div>
+      <div id="auth-msg" style="font-size:0.85rem;min-height:1.2em;margin-bottom:10px;"></div>
+      <button class="btn primary" id="auth-submit" type="button" style="width:100%;">Log in</button>
+    </div>
+  </div>
+
+  <section class="intro">
+    <h1>Write it. Debug it. Publish it.</h1>
+    <p>Upload or paste a single-file website or a program in HTML, JavaScript, TypeScript, Python, Lua, Markdown, JSON, C, C++, Java, Go, Rust, C#, Kotlin, Swift, PHP, Ruby, Perl, Bash and more, preview it, then publish it. <b>Instant link</b> needs no account: your page is packed into the link itself. Or publish to Netlify or GitHub Pages with your own free account to get a normal web address.</p>
+  </section>
+
+  <div class="panel" id="ai-panel" style="margin-bottom:16px;">
+    <div class="panel-head">
+      <span class="step">✨ Build with AI</span>
+      <span class="count" id="ai-credits"></span>
+    </div>
+    <div id="ai-locked" style="font-size:0.9rem;color:var(--muted);">Log in to build and edit a website with AI.</div>
+    <div id="ai-form" hidden style="display:grid;gap:10px;">
+      <textarea id="ai-prompt" rows="3" maxlength="2000" placeholder="Describe your website, e.g. a landing page for my dog-walking business with a contact form" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;resize:vertical;"></textarea>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <select id="ai-model" aria-label="AI model" style="flex:1;min-width:160px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;"></select>
+        <button class="btn primary" id="ai-go" type="button">Generate</button>
+      </div>
+      <div id="ai-msg" style="font-size:0.85rem;min-height:1.2em;"></div>
+    </div>
+  </div>
+
+  <div class="work">
+    <div class="panel">
+      <div class="panel-head">
+        <span class="step">1 · Your code</span>
+        <select id="lang" aria-label="Language" style="padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;font-size:0.85rem;"></select>
+        <div class="seg" role="group" aria-label="Input method">
+          <button type="button" id="mode-upload" aria-pressed="true">Upload file</button>
+          <button type="button" id="mode-paste" aria-pressed="false">Edit code</button>
+        </div>
+      </div>
+      <label class="drop" id="drop" for="file">
+        <span class="drop-icon" aria-hidden="true">CODE</span>
+        <span><strong>Drop a code file or .zip here</strong><small>or click to choose one from your computer. A zip can hold a whole website.</small></span>
+      </label>
+      <input type="file" id="file" hidden>
+      <div class="loaded" id="loaded" aria-live="polite"></div>
+      <textarea id="code" spellcheck="false" aria-label="Code"></textarea>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <span class="step">2 · Preview</span>
+        <div class="seg" role="group" aria-label="Preview width">
+          <button type="button" id="dev-desktop" aria-pressed="true">Desktop</button>
+          <button type="button" id="dev-phone" aria-pressed="false">Phone</button>
+        </div>
+      </div>
+      <div class="browser"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="addr mono" id="addr"></span></div>
+      <div class="stage" id="stage"><iframe id="preview" title="Preview of your site" sandbox="allow-scripts allow-forms allow-modals"></iframe></div>
+    </div>
+  </div>
+
+<section class="panel dbg" id="debug">
+  <div class="panel-head"><h2>🐞 Debug me</h2><span class="count" id="dstat"></span></div>
+  <p style="margin:0;color:var(--muted)">Scan the code above for bugs, catch live console errors, then publish once it is clean.</p>
+  <div class="bar"><button class="btn primary" id="d-go" type="button">🔍 Debug my code</button><button class="btn" id="d-sample" type="button">Load buggy sample</button><button class="btn" id="d-copy" type="button">Copy AI debug prompt</button></div>
+  <div class="dcon" id="dcon">Console output appears here. For non-HTML languages, program output also shows inside the preview.</div>
+  <h3>Report</h3><div class="iss" id="iss"><div class="it ok"><div>Press “Debug my code” to scan.</div></div></div>
+  <h3>🎓 Debugging lessons <span class="count" id="lp"></span></h3>
+  <div class="prog"><i id="pb" style="width:0"></i></div>
+  <div id="lg"></div><div id="ld"></div>
+</section>
+
+  <section class="dest">
+    <div class="dest-head">
+      <span class="step">3 · Publish to</span>
+      <div class="seg" role="group" aria-label="Host">
+        <button type="button" id="host-link" aria-pressed="true">Instant link</button>
+        <button type="button" id="host-netlify" aria-pressed="false">Netlify</button>
+        <button type="button" id="host-github" aria-pressed="false">GitHub Pages</button>
+        <button type="button" id="host-file" aria-pressed="false">Download file</button>
+      </div>
+    </div>
+    <div class="dest-body">
+      <div class="fields">
+        <div class="field">
+          <label for="sitename">Site name</label>
+          <input id="sitename" maxlength="40" autocomplete="off" spellcheck="false" placeholder="my-site">
+          <small id="name-hint">Lowercase letters, numbers and dashes.</small>
+        </div>
+        <div class="field" id="token-field">
+          <label for="token" id="token-label">Netlify access token</label>
+          <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your token">
+          <small id="token-hint"></small>
+        </div>
+      </div>
+      <ol class="howto" id="howto"></ol>
+      <label class="check" id="remember-row"><input type="checkbox" id="remember"> Remember my token in this browser</label>
+      <div class="actions">
+        <button class="btn primary" type="button" id="publish-btn">Publish</button>
+      </div>
+      <div id="notice" aria-live="polite"></div>
+      <div class="log" id="log" hidden></div>
+      <div class="notice err embedded-warn" id="embedded" hidden>This copy is running inside a page that blocks connections to Netlify and GitHub. Download this file, open it in Chrome, Edge, Firefox or Safari, and publish from there.</div>
+    </div>
+  </section>
+
+  <section class="sites">
+    <div class="sites-head"><h2>Your published sites</h2><small>Saved in this browser</small></div>
+    <div class="list" id="list"></div>
+  </section>
+</div>
+
+<script>
+(function () {
+  var STARTER = '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>Hello</title>\n  <style>\n    body { margin: 0; min-height: 100vh; display: grid; place-items: center;\n           font-family: system-ui, sans-serif; background: #0d7152; color: #fff; text-align: center; }\n    h1 { font-size: 3rem; margin: 0 0 8px; }\n  </style>\n</head>\n<body>\n  <div>\n    <h1>Hello, world</h1>\n    <p>Replace this with your own HTML, or upload a file.</p>\n  </div>\n</body>\n</html>\n';
+
+  var HOSTS = {
+    netlify: {
+      label: 'Netlify access token',
+      hint: 'Stays in this browser and is only sent to api.netlify.com.',
+      addr: function (n) { return 'https://' + n + '.netlify.app'; },
+      howto: [
+        'Sign up free at <a href="https://app.netlify.com/signup" target="_blank" rel="noopener">netlify.com</a>.',
+        'Open <a href="https://app.netlify.com/user/applications#personal-access-tokens" target="_blank" rel="noopener">User settings → Applications → Personal access tokens</a> and click <b>New access token</b>.',
+        'Paste the token here and click Publish. Your site will be at <span class="mono">name.netlify.app</span>.'
+      ]
+    },
+    github: {
+      label: 'GitHub access token',
+      hint: 'Stays in this browser and is only sent to api.github.com.',
+      addr: function (n) { return 'https://' + (ghLogin || 'your-username') + '.github.io/' + n + '/'; },
+      howto: [
+        'Sign up free at <a href="https://github.com/signup" target="_blank" rel="noopener">github.com</a>.',
+        'Create a <a href="https://github.com/settings/tokens/new?scopes=repo&description=Launchpad" target="_blank" rel="noopener">classic token with the <b>repo</b> scope</a>.',
+        'Paste it here and click Publish. The site goes live at <span class="mono">username.github.io/name</span>, usually within a minute.'
+      ]
+    },
+    link: {
+      addr: function (n) { return baseUrl() + '#s=…'; },
+      howto: [
+        'No account or token needed. Your whole page is compressed into the link.',
+        'Anyone who opens the link sees your site. Nothing is stored on a server, so the link keeps working as long as this Launchpad site is online.',
+        'Changing the site gives a new link. Very large pages make very long links, which some chat apps may cut off.'
+      ]
+    },
+    file: {
+      addr: function (n) { return n + '.html'; },
+      howto: [
+        'Saves the HTML as a file on your computer.',
+        'Upload it to any web host, such as <a href="https://app.netlify.com/drop" target="_blank" rel="noopener">Netlify Drop</a>, Cloudflare Pages, Neocities or your own server.'
+      ]
+    }
+  };
+
+  var HOSTED_URL = 'https://bright-biscochitos-f69d68.netlify.app/';
+  var host = 'link', ghLogin = '', busy = false, bundle = null;
+  var $ = function (id) { return document.getElementById(id); };
+  var code = $('code');
+
+  /* ---------- storage (per-browser convenience) ---------- */
+  function load(key, fallback) { try { var v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); } catch (e) { return fallback; } }
+  function store(key, val) { try { if (val == null) localStorage.removeItem(key); else localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+  var history = load('launchpad-history', []);
+  var tokens = load('launchpad-tokens', {});
+
+  /* ---------- helpers ---------- */
+  function clean(v) { return String(v || '').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/-+/g, '-').replace(/^-/, '').slice(0, 40); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function titleOf(html, fb) { var m = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html); return (m && m[1].replace(/\s+/g, ' ').trim()) || fb; }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function fmtSize(n) { return n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : (n / 1048576).toFixed(2) + ' MB'; }
+  function log(msg, cls) { var l = $('log'); l.hidden = false; var d = document.createElement('div'); d.textContent = msg; if (cls) d.className = cls; l.appendChild(d); l.scrollTop = l.scrollHeight; }
+  function notice(kind, html) { $('notice').innerHTML = html ? '<div class="notice ' + kind + '">' + html + '</div>' : ''; }
+  function b64utf8(str) {
+    var bytes = new TextEncoder().encode(str), bin = '';
+    for (var i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+  }
+  async function sha1(str) {
+    var buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+  /* ---------- account (Supabase) ---------- */
+  var SB_URL = 'https://bcogtxeqeopvsyrejsdj.supabase.co';
+  var SB_KEY = 'sb_publishable_bPdSIexAYb7pHD0ALc_3wA_vj8XAWqH';
+  var session = null;
+  try { session = JSON.parse(localStorage.getItem('launchpad-session') || 'null'); } catch (e) { session = null; }
+
+  function authHeaders(extra) {
+    var h = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
+    if (extra) for (var k in extra) h[k] = extra[k];
+    return h;
+  }
+
+  async function sbSignUp(email, password) {
+    var res = await fetch(SB_URL + '/auth/v1/signup', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ email: email, password: password }) });
+    var data = await res.json().catch(function () { return {}; });
+    if (!res.ok) throw new Error(data.error_description || data.msg || data.error || 'Sign up failed.');
+    return data;
+  }
+  async function sbLogIn(email, password) {
+    var res = await fetch(SB_URL + '/auth/v1/token?grant_type=password', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ email: email, password: password }) });
+    var data = await res.json().catch(function () { return {}; });
+    if (!res.ok) throw new Error(data.error_description || data.msg || data.error || 'Log in failed.');
+    return data;
+  }
+  async function sbVerifySignup(email, token) {
+    var res = await fetch(SB_URL + '/auth/v1/verify', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ email: email, token: token, type: 'signup' }) });
+    var data = await res.json().catch(function () { return {}; });
+    if (!res.ok) throw new Error(data.error_description || data.msg || data.error || 'Invalid or expired code.');
+    return data;
+  }
+  async function sbLogOut() {
+    if (!session) return;
+    try { await fetch(SB_URL + '/auth/v1/logout', { method: 'POST', headers: authHeaders({ 'Authorization': 'Bearer ' + session.access_token }) }); } catch (e) {}
+  }
+
+  function saveSession(data) {
+    session = { access_token: data.access_token, refresh_token: data.refresh_token, email: data.user && data.user.email };
+    localStorage.setItem('launchpad-session', JSON.stringify(session));
+    updateAccountUI();
+  }
+  function clearSession() {
+    session = null;
+    localStorage.removeItem('launchpad-session');
+    updateAccountUI();
+  }
+  function updateAccountUI() {
+    var btn = $('account-btn');
+    if (!btn) return;
+    btn.textContent = session ? session.email : 'Log in';
+    if ($('ai-locked')) { $('ai-locked').hidden = !!session; $('ai-form').hidden = !session; }
+    if (session) aiLoadBalance(); else if ($('ai-credits')) $('ai-credits').textContent = '';
+  }
+
+  /* ---------- AI website builder ---------- */
+  async function aiCall(payload) {
+    var res = await fetch(SB_URL + '/functions/v1/genimi-generate', {
+      method: 'POST',
+      headers: authHeaders({ 'Authorization': 'Bearer ' + session.access_token }),
+      body: JSON.stringify(payload)
+    });
+    var data = await res.json().catch(function () { return {}; });
+    if (res.status === 401) { clearSession(); throw new Error('Session expired. Please log in again.'); }
+    data._ok = res.ok; data._status = res.status;
+    return data;
+  }
+  function aiShowBalance(n) { $('ai-credits').textContent = ''; }
+  async function aiLoadBalance() {
+    try {
+      var d = await aiCall({ action: 'balance' });
+      if (d.balance !== undefined) aiShowBalance(d.balance);
+      if (d.models && !$('ai-model').options.length) {
+        Object.keys(d.models).forEach(function (id) {
+          var o = document.createElement('option');
+          o.value = id; o.textContent = d.models[id].label;
+          $('ai-model').appendChild(o);
+        });
+      }
+    } catch (e) { /* ignore */ }
+  }
+  async function aiGenerate() {
+    var prompt = $('ai-prompt').value.trim(), msg = $('ai-msg'), btn = $('ai-go');
+    msg.style.color = 'var(--warn)';
+    if (!prompt) { msg.textContent = 'Describe the website first.'; return; }
+    btn.disabled = true; btn.textContent = 'Generating…'; msg.style.color = 'var(--muted)'; msg.textContent = 'This can take up to a minute.';
+    try {
+      var d = await aiCall({ model: $('ai-model').value, prompt: prompt });
+      if (d.balance !== undefined) aiShowBalance(d.balance);
+      if (!d._ok) throw new Error(d.error || 'Something went wrong.');
+      setLang('html'); code.value = d.html; refresh();
+      msg.style.color = 'var(--live)'; msg.textContent = 'Done! Preview is below. Edit it or publish it.';
+    } catch (e) {
+      msg.style.color = 'var(--warn)'; msg.textContent = e.message;
+    } finally { btn.disabled = false; btn.textContent = 'Generate'; }
+  }
+
+  var authMode = 'login'; // 'login' | 'signup' | 'verify'
+  var pendingVerifyEmail = '';
+  function openAuth() {
+    $('auth-overlay').hidden = false;
+    $('auth-msg').textContent = '';
+    $('auth-email').value = ''; $('auth-password').value = ''; $('auth-code').value = '';
+    setAuthMode('login');
+  }
+  function closeAuth() { $('auth-overlay').hidden = true; }
+  function setAuthMode(mode) {
+    authMode = mode;
+    var isVerify = mode === 'verify';
+    $('auth-fields').hidden = isVerify;
+    $('auth-verify-fields').hidden = !isVerify;
+    $('auth-tab-login').closest('.seg').hidden = isVerify;
+    $('auth-tab-login').setAttribute('aria-pressed', String(mode === 'login'));
+    $('auth-tab-signup').setAttribute('aria-pressed', String(mode === 'signup'));
+    $('auth-submit').textContent = mode === 'login' ? 'Log in' : mode === 'signup' ? 'Sign up' : 'Confirm code';
+    $('auth-msg').textContent = '';
+    if (isVerify) $('auth-verify-email').textContent = pendingVerifyEmail;
+  }
+  async function submitAuth() {
+    var btn = $('auth-submit'), old = btn.textContent;
+    if (authMode === 'verify') {
+      var code = $('auth-code').value.trim();
+      if (!code) { $('auth-msg').style.color = 'var(--warn)'; $('auth-msg').textContent = 'Enter the code from your email.'; return; }
+      btn.disabled = true; btn.textContent = 'Verifying…';
+      try {
+        var dv = await sbVerifySignup(pendingVerifyEmail, code);
+        saveSession(dv); closeAuth();
+      } catch (e) {
+        $('auth-msg').style.color = 'var(--warn)';
+        $('auth-msg').textContent = e.message || 'Something went wrong.';
+      } finally {
+        btn.disabled = false; btn.textContent = old;
+      }
+      return;
+    }
+    var email = $('auth-email').value.trim();
+    var password = $('auth-password').value;
+    if (!email || !password) { $('auth-msg').textContent = 'Enter an email and password.'; $('auth-msg').style.color = 'var(--warn)'; return; }
+    btn.disabled = true; btn.textContent = 'Please wait…';
+    try {
+      if (authMode === 'signup') {
+        var d = await sbSignUp(email, password);
+        if (d.access_token) { saveSession(d); closeAuth(); }
+        else { $('auth-msg').style.color = 'var(--live)'; $('auth-msg').textContent = 'Account created. Check your email and click the confirmation link, then log in.'; setAuthMode('login'); }
+      } else {
+        var d2 = await sbLogIn(email, password);
+        saveSession(d2); closeAuth();
+      }
+    } catch (e) {
+      $('auth-msg').style.color = 'var(--warn)';
+      $('auth-msg').textContent = e.message || 'Something went wrong.';
+    } finally {
+      btn.disabled = false; btn.textContent = old;
+    }
+  }
+
+  function HttpError(status, body) { var e = new Error(body && (body.message || body.error) || ('HTTP ' + status)); e.status = status; e.body = body; return e; }
+  async function api(url, opts) {
+    var res;
+    try { res = await fetch(url, opts); }
+    catch (e) { var err = new Error('network'); err.network = true; throw err; }
+    var text = await res.text(), body = null;
+    try { body = text ? JSON.parse(text) : null; } catch (e) { body = { message: text }; }
+    if (!res.ok) throw HttpError(res.status, body);
+    return body;
+  }
+
+  /* ---------- preview ---------- */
+  function refresh() {
+    var out = build(code.value);
+    if (bundle && curLang === 'html') { try { out = inlineAssets(out, bundle.files, bundle.entry); } catch (e) {} }
+    $('preview').srcdoc = out;
+  }
+
+  /* ---------- multi-language support ---------- */
+  /* b = runs in the browser (JS/WebAssembly), r = runs through a remote runner (Piston API) */
+  /* Compiled languages run through Wandbox (free, no key), falling back to Piston. */
+  async function remoteRun(SRC, LANG, LANGN, w) {
+    var err1, err2;
+    try {
+      var list = await (await fetch('https://wandbox.org/api/list.json')).json(), n = LANGN.toLowerCase();
+      var c = list.filter(function (x) { return x.language.toLowerCase() === n; });
+      if (!c.length) c = list.filter(function (x) { return x.language.toLowerCase().indexOf(n + ' ') === 0; });
+      if (!c.length) throw new Error('no Wandbox compiler for ' + LANGN);
+      var pick = c.filter(function (x) { return /head/.test(x.name); })[0] || c[0];
+      var code = n === 'java' ? SRC.replace(/public\s+class/g, 'class') : SRC;
+      var r = await fetch('https://wandbox.org/api/compile.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: code, compiler: pick.name, save: false }) });
+      var d = await r.json();
+      if (d.compiler_error) w(d.compiler_error);
+      w(d.program_message || d.program_output || '');
+      if (d.status && String(d.status) !== '0') w('[exit code ' + d.status + ']');
+      return;
+    } catch (e) { err1 = e; }
+    try {
+      var r2 = await fetch('https://emkc.org/api/v2/piston/execute', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ language: LANG, version: '*', files: [{ content: SRC }] }) });
+      var d2 = await r2.json();
+      if (!r2.ok) throw new Error(d2.message || ('HTTP ' + r2.status));
+      if (d2.compile && d2.compile.output) w(d2.compile.output);
+      w(d2.run.output);
+    } catch (e) { err2 = e; }
+    throw new Error('Could not reach a code runner (' + (err1 && err1.message) + '; ' + (err2 && err2.message) + '). Check your connection and try again.');
+  }
+  var LANGS = {
+    html: { n: 'HTML', x: ['html', 'htm'] },
+    javascript: { n: 'JavaScript', x: ['js', 'mjs'], b: 'js' },
+    typescript: { n: 'TypeScript', x: ['ts'], b: 'ts' },
+    python: { n: 'Python', x: ['py'], b: 'py' },
+    lua: { n: 'Lua', x: ['lua'], b: 'lua' },
+    markdown: { n: 'Markdown', x: ['md', 'markdown'], b: 'md' },
+    json: { n: 'JSON', x: ['json'], b: 'json' },
+    c: { n: 'C', x: ['c'], r: 'c' }, cpp: { n: 'C++', x: ['cpp', 'cc', 'cxx'], r: 'c++' },
+    java: { n: 'Java', x: ['java'], r: 'java' }, go: { n: 'Go', x: ['go'], r: 'go' },
+    rust: { n: 'Rust', x: ['rs'], r: 'rust' }, csharp: { n: 'C#', x: ['cs'], r: 'csharp' },
+    kotlin: { n: 'Kotlin', x: ['kt'], r: 'kotlin' }, swift: { n: 'Swift', x: ['swift'], r: 'swift' },
+    php: { n: 'PHP', x: ['php'], r: 'php' }, ruby: { n: 'Ruby', x: ['rb'], r: 'ruby' },
+    perl: { n: 'Perl', x: ['pl'], r: 'perl' }, bash: { n: 'Bash', x: ['sh', 'bash'], r: 'bash' },
+    r: { n: 'R', x: ['r'], r: 'r' }, dart: { n: 'Dart', x: ['dart'], r: 'dart' },
+    scala: { n: 'Scala', x: ['scala'], r: 'scala' }, haskell: { n: 'Haskell', x: ['hs'], r: 'haskell' }
+  };
+  var LIBS = {
+    ts: 'https://cdnjs.cloudflare.com/ajax/libs/typescript/5.4.5/typescript.min.js',
+    py: 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js',
+    lua: 'https://cdn.jsdelivr.net/npm/fengari-web@0.1.4/dist/fengari-web.js',
+    md: 'https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js'
+  };
+  var BODY = {
+    js: 'await (0,eval)("(async()=>{"+SRC+"\\n})()");',
+    ts: 'await (0,eval)("(async()=>{"+ts.transpile(SRC,{target:"ES2020"})+"\\n})()");',
+    py: 'var p=await loadPyodide();p.setStdout({batched:w});p.setStderr({batched:w});await p.loadPackagesFromImports(SRC);await p.runPythonAsync(SRC);',
+    lua: 'fengari.load(SRC)();',
+    remote: 'await remoteRun(SRC,LANG,LANGN,w);'
+  };
+  var S0 = {
+    html: STARTER,
+    javascript: 'console.log("Hello from JavaScript");',
+    typescript: 'const msg: string = "Hello from TypeScript";\nconsole.log(msg);',
+    python: 'print("Hello from Python")',
+    lua: 'print("Hello from Lua")',
+    markdown: '# Hello\n\nWrite **Markdown** here.',
+    json: '{ "hello": "world" }',
+    c: '#include <stdio.h>\nint main(void) { printf("Hello from C\\n"); return 0; }',
+    cpp: '#include <iostream>\nint main() { std::cout << "Hello from C++\\n"; }',
+    java: 'public class Main {\n  public static void main(String[] a) { System.out.println("Hello from Java"); }\n}',
+    go: 'package main\nimport "fmt"\nfunc main() { fmt.Println("Hello from Go") }',
+    rust: 'fn main() { println!("Hello from Rust"); }',
+    csharp: 'System.Console.WriteLine("Hello from C#");',
+    kotlin: 'fun main() { println("Hello from Kotlin") }',
+    swift: 'print("Hello from Swift")',
+    php: '<?php echo "Hello from PHP\\n";',
+    ruby: 'puts "Hello from Ruby"',
+    perl: 'print "Hello from Perl\\n";',
+    bash: 'echo "Hello from Bash"'
+  };
+  Object.keys(LANGS).forEach(function (k) { var o = document.createElement('option'); o.value = k; o.textContent = LANGS[k].n; $('lang').appendChild(o); });
+  var curLang = 'html';
+  function setLang(l) { if (!LANGS[l]) return; $('lang').value = l; curLang = l; }
+  function langFromName(name) { var e = (/\.([a-z0-9]+)$/i.exec(name) || [])[1]; e = e && e.toLowerCase(); return Object.keys(LANGS).filter(function (k) { return LANGS[k].x.indexOf(e) > -1; })[0]; }
+  function build(src, l) {
+    l = l || $('lang').value; var L = LANGS[l];
+    if (!L || l === 'html') return src;
+    var S = JSON.stringify(src).replace(/</g, '\\u003c'), lib = LIBS[L.b], head, body = '', auto = false, run = '';
+    if (L.b === 'md') { body = '<div id="md"></div>'; run = 'document.getElementById("md").innerHTML=marked.parse(SRC);'; }
+    else if (L.b === 'json') { body = '<pre id="o"></pre>'; run = 'var o=document.getElementById("o");try{o.textContent=JSON.stringify(JSON.parse(SRC),null,2)}catch(e){o.textContent="Invalid JSON: "+e.message}'; }
+    else {
+      auto = !!L.b;
+      body = '<div class="bar"><b>' + esc(L.n) + '</b><button id="b">Run</button></div><pre id="o"></pre><details open><summary>Source</summary><pre class="src">' + esc(src) + '</pre></details>';
+      run = 'var LANG=' + JSON.stringify(L.r || '') + ',LANGN=' + JSON.stringify(L.n) + ';' + (L.b ? '' : 'var remoteRun=' + remoteRun.toString() + ';') + 'var o=document.getElementById("o");function w(t){o.textContent+=t+"\\n"}' +
+        'console.log=console.info=console.warn=console.error=function(){w([].slice.call(arguments).join(" "))};' +
+        'async function go(){o.textContent="";var b=document.getElementById("b");b.disabled=true;try{' + (L.b ? BODY[L.b] : BODY.remote) + '}catch(e){w(String(e&&e.message||e))}b.disabled=false}' +
+        'document.getElementById("b").onclick=go;' + (auto ? 'go();' : '');
+    }
+    return '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(L.n) + ' program</title>' +
+      (lib ? '<script src="' + lib + '"><\/script>' : '') +
+      '<style>body{margin:0;padding:20px;font:15px/1.6 system-ui,sans-serif;background:#0e1311;color:#e4ebe7}#md{max-width:760px;margin:auto;background:#fff;color:#15201b;padding:24px;border-radius:10px}.bar{display:flex;gap:12px;align-items:center;margin-bottom:10px}button{background:#3cc497;color:#06231a;border:0;border-radius:8px;padding:8px 16px;font:600 14px system-ui;cursor:pointer}button:disabled{opacity:.5}pre{background:#151c19;border:1px solid #2a3530;border-radius:8px;padding:12px;overflow:auto;white-space:pre-wrap;font:13px/1.55 ui-monospace,monospace;min-height:1.5em}.src{color:#92a29a}summary{cursor:pointer;margin:12px 0 6px;color:#92a29a}</style></head><body>' +
+      body + '<script>var SRC=' + S + ';' + run + '<\/script></body></html>';
+  }
+  function updateAddr() { var n = clean($('sitename').value).replace(/-$/, '') || 'my-site'; $('addr').textContent = HOSTS[host].addr(n); }
+
+  /* ---------- host switch ---------- */
+  function setHost(h) {
+    host = h;
+    ['link', 'netlify', 'github', 'file'].forEach(function (k) { $('host-' + k).setAttribute('aria-pressed', String(k === h)); });
+    var cfg = HOSTS[h], needsToken = h === 'netlify' || h === 'github';
+    $('token-field').hidden = !needsToken;
+    $('remember-row').hidden = !needsToken;
+    if (needsToken) {
+      $('token-label').textContent = cfg.label;
+      $('token-hint').textContent = cfg.hint;
+      $('token').value = tokens[h] || '';
+      $('remember').checked = !!tokens[h];
+    }
+    $('howto').innerHTML = cfg.howto.map(function (s) { return '<li>' + s + '</li>'; }).join('');
+    $('publish-btn').textContent = h === 'file' ? 'Download HTML' : h === 'link' ? 'Create link' : 'Publish to ' + (h === 'netlify' ? 'Netlify' : 'GitHub Pages');
+    store('launchpad-host', h);
+    updateAddr();
+  }
+
+
+  /* ---------- zip upload (read in the browser, no library) ---------- */
+  var MIME = { html: 'text/html', htm: 'text/html', css: 'text/css', js: 'text/javascript', mjs: 'text/javascript', json: 'application/json', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', avif: 'image/avif', svg: 'image/svg+xml', ico: 'image/x-icon', woff: 'font/woff', woff2: 'font/woff2', ttf: 'font/ttf', otf: 'font/otf', mp3: 'audio/mpeg', wav: 'audio/wav', ogg: 'audio/ogg', mp4: 'video/mp4', webm: 'video/webm', txt: 'text/plain', xml: 'application/xml', pdf: 'application/pdf', webmanifest: 'application/manifest+json' };
+  var URI_CACHE = new WeakMap();
+  function mimeOf(p) { var m = /\.([a-z0-9]+)$/i.exec(p); return (m && MIME[m[1].toLowerCase()]) || 'application/octet-stream'; }
+  function b64bytes(u8) { var bin = ''; for (var i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(bin); }
+  function encPath(p) { return p.split('/').map(encodeURIComponent).join('/'); }
+  async function sha1b(bytes) { var buf = await crypto.subtle.digest('SHA-1', bytes); return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join(''); }
+  function dataUri(files, p) {
+    var b = files.get(p), c = URI_CACHE.get(b);
+    if (!c) { c = 'data:' + mimeOf(p) + ';base64,' + b64bytes(b); URI_CACHE.set(b, c); }
+    return c;
+  }
+  function resolvePath(url, from, files) {
+    if (!url || /^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(url)) return null;
+    var u = url.split('#')[0].split('?')[0]; if (!u) return null;
+    try { u = decodeURIComponent(u); } catch (e) {}
+    var parts = u.charAt(0) === '/' ? [] : from.split('/').slice(0, -1);
+    u.split('/').forEach(function (s) { if (!s || s === '.') return; if (s === '..') parts.pop(); else parts.push(s); });
+    var p = parts.join('/'); return files.has(p) ? p : null;
+  }
+  function inlineCss(css, from, files) {
+    return css.replace(/url\(\s*(['"]?)([^'")]+?)\1\s*\)/g, function (m, q, u) {
+      var p = resolvePath(u.trim(), from, files);
+      return p ? 'url("' + dataUri(files, p) + '")' : m;
+    });
+  }
+  /* Folds a page's local styles, scripts, images and fonts into one self-contained HTML string. */
+  function inlineAssets(html, files, entry) {
+    var doc = new DOMParser().parseFromString(html, 'text/html'), dec = new TextDecoder();
+    doc.querySelectorAll('link[rel~="stylesheet"][href]').forEach(function (l) {
+      var p = resolvePath(l.getAttribute('href'), entry, files); if (!p) return;
+      var s = doc.createElement('style'); s.textContent = inlineCss(dec.decode(files.get(p)), p, files);
+      var med = l.getAttribute('media'); if (med) s.setAttribute('media', med);
+      l.replaceWith(s);
+    });
+    doc.querySelectorAll('style').forEach(function (s) { s.textContent = inlineCss(s.textContent, entry, files); });
+    doc.querySelectorAll('[style]').forEach(function (e) { e.setAttribute('style', inlineCss(e.getAttribute('style'), entry, files)); });
+    doc.querySelectorAll('script[src]').forEach(function (s) {
+      var p = resolvePath(s.getAttribute('src'), entry, files); if (!p) return;
+      var t = dec.decode(files.get(p)).replace(/<\/script/gi, '<\\/script');
+      s.removeAttribute('src'); s.textContent = t;
+    });
+    [['img', 'src'], ['source', 'src'], ['video', 'src'], ['video', 'poster'], ['audio', 'src'], ['input', 'src'], ['embed', 'src'], ['link[rel~="icon"]', 'href'], ['link[rel="apple-touch-icon"]', 'href']].forEach(function (a) {
+      doc.querySelectorAll(a[0] + '[' + a[1] + ']').forEach(function (e) {
+        var p = resolvePath(e.getAttribute(a[1]), entry, files); if (p) e.setAttribute(a[1], dataUri(files, p));
+      });
+    });
+    return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+  }
+  var ZIP_LIMIT = 30 * 1048576;
+  async function readZip(buf) {
+    var dv = new DataView(buf), u8 = new Uint8Array(buf), dec = new TextDecoder();
+    var i = buf.byteLength - 22, min = Math.max(0, buf.byteLength - 65557);
+    for (; i >= min; i--) if (dv.getUint32(i, true) === 0x06054b50) break;
+    if (i < min) throw new Error('That does not look like a valid zip file.');
+    var count = dv.getUint16(i + 10, true), p = dv.getUint32(i + 16, true), list = [];
+    for (var n = 0; n < count; n++) {
+      if (p + 46 > buf.byteLength || dv.getUint32(p, true) !== 0x02014b50) throw new Error('The zip file looks damaged.');
+      var flags = dv.getUint16(p + 8, true), method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true), usize = dv.getUint32(p + 24, true),
+          nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), lo = dv.getUint32(p + 42, true);
+      var name = dec.decode(u8.subarray(p + 46, p + 46 + nl)).replace(/\\/g, '/');
+      p += 46 + nl + xl + cl;
+      if (/\/$/.test(name) || /(^|\/)(__MACOSX|\.DS_Store|Thumbs\.db)(\/|$)/.test(name)) continue;
+      if (flags & 1) throw new Error('Password-protected zips are not supported.');
+      if (csize === 0xFFFFFFFF || usize === 0xFFFFFFFF || lo === 0xFFFFFFFF) throw new Error('This zip is too large or uses Zip64, which is not supported.');
+      if (name.charAt(0) === '/' || name.split('/').indexOf('..') > -1) continue;
+      list.push({ name: name, method: method, csize: csize, usize: usize, lo: lo });
+    }
+    if (!list.length) throw new Error('The zip file is empty.');
+    if (list.length > 500) throw new Error('The zip has ' + list.length + ' files. The limit is 500.');
+    if (list.reduce(function (a, f) { return a + f.usize; }, 0) > ZIP_LIMIT) throw new Error('The zip is larger than 30 MB once unpacked.');
+    var first = list[0].name.split('/')[0];
+    var strip = list.every(function (f) { return f.name.indexOf('/') > -1 && f.name.split('/')[0] === first; });
+    var files = new Map(), total = 0;
+    for (var k = 0; k < list.length; k++) {
+      var f = list[k], h = f.lo;
+      if (h + 30 > buf.byteLength || dv.getUint32(h, true) !== 0x04034b50) throw new Error('The zip file looks damaged.');
+      var start = h + 30 + dv.getUint16(h + 26, true) + dv.getUint16(h + 28, true), raw = u8.subarray(start, start + f.csize), data;
+      if (f.method === 0) data = raw.slice();
+      else if (f.method === 8) data = new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+      else throw new Error('"' + f.name + '" uses a compression method that is not supported.');
+      total += data.length;
+      if (total > ZIP_LIMIT) throw new Error('The zip is larger than 30 MB once unpacked.');
+      files.set(strip ? f.name.slice(first.length + 1) : f.name, data);
+    }
+    var names = Array.from(files.keys()), entry = null;
+    if (files.has('index.html')) entry = 'index.html';
+    else {
+      var pages = names.filter(function (x) { return /\.html?$/i.test(x); }).sort(function (a, b) {
+        var d = a.split('/').length - b.split('/').length; if (d) return d;
+        var ia = /(^|\/)index\.html?$/i.test(a) ? 0 : 1, ib = /(^|\/)index\.html?$/i.test(b) ? 0 : 1;
+        return ia - ib || a.localeCompare(b);
+      });
+      entry = pages[0];
+    }
+    if (!entry) throw new Error('No HTML page found in the zip. Add an index.html and try again.');
+    return { files: files, entry: entry, total: total };
+  }
+  function showBundle() {
+    var L = $('loaded');
+    if (!bundle) { L.textContent = ''; return; }
+    var names = Array.from(bundle.files.keys()).sort();
+    L.style.color = '';
+    L.innerHTML = esc('Loaded ' + bundle.name + ': ' + names.length + (names.length === 1 ? ' file, ' : ' files, ') + fmtSize(bundle.total) + '. Starting page: ' + bundle.entry + '. ') +
+      '<button type="button" class="btn" id="zip-clear" style="padding:2px 10px;font-size:0.8rem">Remove zip</button>' +
+      '<details style="margin-top:6px"><summary>Show files</summary><div class="mono" style="max-height:140px;overflow:auto;font-size:0.8rem">' + names.map(esc).join('<br>') + '</div></details>' +
+      '<small style="display:block;margin-top:6px;color:var(--muted)">Netlify and GitHub Pages publish every file, so links between pages work. The preview, Instant link and Download file show the starting page with its styles, scripts and images built in.</small>';
+    $('zip-clear').onclick = function () { bundle = null; showBundle(); refresh(); };
+  }
+  async function loadZip(f) {
+    var L = $('loaded'); L.style.color = ''; L.textContent = 'Reading ' + f.name + '…';
+    try {
+      if (typeof DecompressionStream === 'undefined') throw new Error('This browser can\'t open zip files. Use a recent Chrome, Edge, Firefox or Safari.');
+      var z = await readZip(await f.arrayBuffer());
+      setLang('html');
+      bundle = { name: f.name, files: z.files, entry: z.entry, total: z.total };
+      code.value = new TextDecoder().decode(z.files.get(z.entry));
+      refresh(); showBundle();
+      var base = clean(f.name.replace(/\.zip$/i, '')).replace(/-$/, '');
+      if (base) { $('sitename').value = base; updateAddr(); }
+    } catch (e) {
+      bundle = null; L.style.color = 'var(--warn)'; L.textContent = e.message || 'Could not read that zip file.';
+    }
+  }
+  function handleFile(f) {
+    if (!f) return;
+    if (/\.zip$/i.test(f.name) || f.type === 'application/zip' || f.type === 'application/x-zip-compressed') { loadZip(f); return; }
+    bundle = null; loadFile(f);
+  }
+  /* the files to deploy when a zip is loaded (the page text box wins over the zip's copy) */
+  function siteFiles() {
+    if (!bundle || curLang !== 'html') return null;
+    var enc = new TextEncoder(), m = new Map(bundle.files);
+    m.set(bundle.entry, enc.encode(code.value));
+    if (!m.has('index.html')) {
+      var u = encPath(bundle.entry);
+      m.set('index.html', enc.encode('<!DOCTYPE html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=' + u + '"><a href="' + u + '">Open site</a>'));
+    }
+    return m;
+  }
+  function toFileList(input) {
+    if (typeof input === 'string') return [{ path: 'index.html', bytes: new TextEncoder().encode(input) }];
+    return Array.from(input.entries()).map(function (e) { return { path: e[0], bytes: e[1] }; });
+  }
+
+  /* ---------- Netlify ---------- */
+  async function publishNetlify(name, input, token) {
+    var files = toFileList(input);
+    var H = { Authorization: 'Bearer ' + token };
+    log('Checking your Netlify account…');
+    var sites = await api('https://api.netlify.com/api/v1/sites?filter=all&per_page=100&name=' + encodeURIComponent(name), { headers: H });
+    var site = (sites || []).find(function (s) { return s.name === name; });
+    if (site) log('Found existing site ' + name + ', updating it.');
+    else {
+      log('Creating site ' + name + '…');
+      try {
+        site = await api('https://api.netlify.com/api/v1/sites', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, H), body: JSON.stringify({ name: name }) });
+      } catch (e) {
+        if (e.status === 422) throw new Error('The name "' + name + '" is already taken on Netlify by someone else. Choose a different site name.');
+        throw e;
+      }
+    }
+    var map = {};
+    for (var i = 0; i < files.length; i++) { files[i].digest = await sha1b(files[i].bytes); map['/' + files[i].path] = files[i].digest; }
+    log('Starting deploy of ' + files.length + (files.length === 1 ? ' file…' : ' files…'));
+    var deploy = await api('https://api.netlify.com/api/v1/sites/' + site.id + '/deploys', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, H), body: JSON.stringify({ files: map }) });
+    var need = deploy.required || [], seen = {};
+    for (var j = 0; j < files.length; j++) {
+      var f = files[j];
+      if (need.indexOf(f.digest) === -1 || seen[f.digest]) continue;
+      seen[f.digest] = 1;
+      log('Uploading ' + f.path + ' (' + fmtSize(f.bytes.length) + ')…');
+      await api('https://api.netlify.com/api/v1/deploys/' + deploy.id + '/files/' + encPath(f.path), { method: 'PUT', headers: Object.assign({ 'Content-Type': 'application/octet-stream' }, H), body: new Blob([f.bytes]) });
+    }
+    log('Waiting for Netlify to go live…');
+    for (var t = 0; t < 30; t++) {
+      var d = await api('https://api.netlify.com/api/v1/deploys/' + deploy.id, { headers: H });
+      if (d.state === 'ready') break;
+      if (d.state === 'error') throw new Error('Netlify reported a deploy error: ' + (d.error_message || 'unknown'));
+      await sleep(1500);
+    }
+    return site.ssl_url || ('https://' + name + '.netlify.app');
+  }
+
+  /* ---------- GitHub Pages ---------- */
+  async function publishGitHub(name, input, token) {
+    var files = toFileList(input);
+    var H = { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json' };
+    var J = Object.assign({ 'Content-Type': 'application/json' }, H);
+    log('Checking your GitHub account…');
+    var me = await api('https://api.github.com/user', { headers: H });
+    ghLogin = me.login; updateAddr();
+    var repo = null;
+    try { repo = await api('https://api.github.com/repos/' + me.login + '/' + name, { headers: H }); log('Found repository ' + name + ', updating it.'); }
+    catch (e) { if (e.status !== 404) throw e; }
+    if (!repo) {
+      log('Creating repository ' + name + '…');
+      repo = await api('https://api.github.com/user/repos', { method: 'POST', headers: J, body: JSON.stringify({ name: name, description: 'Published with Launchpad', homepage: 'https://' + me.login.toLowerCase() + '.github.io/' + name + '/' }) });
+    }
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i], api_url = 'https://api.github.com/repos/' + me.login + '/' + name + '/contents/' + encPath(f.path), sha;
+      try { var existing = await api(api_url, { headers: H }); sha = existing.sha; }
+      catch (e) { if (e.status !== 404) throw e; sha = undefined; }
+      log('Uploading ' + f.path + ' (' + (i + 1) + '/' + files.length + ')…');
+      var put = { message: sha ? 'Update ' + f.path : 'Add ' + f.path, content: b64bytes(f.bytes) };
+      if (sha) put.sha = sha;
+      await api(api_url, { method: 'PUT', headers: J, body: JSON.stringify(put) });
+    }
+    repo = await api('https://api.github.com/repos/' + me.login + '/' + name, { headers: H });
+    var branch = repo.default_branch || 'main';
+    log('Turning on GitHub Pages…');
+    try { await api('https://api.github.com/repos/' + me.login + '/' + name + '/pages', { method: 'POST', headers: J, body: JSON.stringify({ source: { branch: branch, path: '/' } }) }); }
+    catch (e) { if (e.status !== 409) throw e; }
+    var url = 'https://' + me.login.toLowerCase() + '.github.io/' + name + '/';
+    try { var pages = await api('https://api.github.com/repos/' + me.login + '/' + name + '/pages', { headers: H }); if (pages.html_url) url = pages.html_url; } catch (e) {}
+    log('GitHub is building the page. It usually appears within a minute.');
+    return url;
+  }
+
+  /* ---------- instant link (site packed into the URL) ---------- */
+  function baseUrl() {
+    return /^https?:$/.test(location.protocol) ? location.origin + location.pathname : HOSTED_URL;
+  }
+  function toB64url(bytes) {
+    var bin = '';
+    for (var i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function fromB64url(s) {
+    s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '=';
+    return Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); });
+  }
+  async function packHtml(html) {
+    var stream = new Blob([html]).stream().pipeThrough(new CompressionStream('gzip'));
+    return toB64url(new Uint8Array(await new Response(stream).arrayBuffer()));
+  }
+  async function unpackHtml(packed) {
+    var stream = new Blob([fromB64url(packed)]).stream().pipeThrough(new DecompressionStream('gzip'));
+    return await new Response(stream).text();
+  }
+  async function makeLink(name, html) {
+    if (typeof CompressionStream === 'undefined') { notice('err', 'This browser can\'t create instant links. Use a recent Chrome, Edge, Firefox or Safari.'); return; }
+    var url = baseUrl() + '#s=' + (await packHtml(html));
+    var warn = url.length > 60000 ? '<p class="hint warn" style="margin:0;flex-basis:100%">This link is very long (' + Math.round(url.length / 1000) + 'k characters). It works in browsers, but some chat apps may cut it off. For big sites, use Netlify or GitHub Pages instead.</p>' : '';
+    notice('ok', '<strong>Your link is ready.</strong> <a class="btn" href="' + esc(url) + '" target="_blank" rel="noopener">Open site</a> <button class="btn" type="button" data-copy="' + esc(url) + '">Copy link</button>' + warn +
+      '<textarea class="linkbox" id="linkbox" readonly aria-label="Your site link">' + esc(url) + '</textarea>');
+    history = history.filter(function (h) { return !(h.name === name && h.host === 'link'); });
+    history.unshift({ name: name, host: 'link', url: url, title: titleOf(html, name), updated: new Date().toISOString() });
+    store('launchpad-history', history.slice(0, 50));
+    renderList();
+  }
+
+  /* ---------- visitor view for instant links ---------- */
+  var siteView = null;
+  async function route() {
+    var h = location.hash || '';
+    if (h.indexOf('#s=') !== 0) {
+      if (siteView) { siteView.remove(); siteView = null; document.querySelector('.shell').hidden = false; document.title = 'Launchpad Publisher'; }
+      return;
+    }
+    var html;
+    try { html = await unpackHtml(h.slice(3)); }
+    catch (e) {
+      document.querySelector('.shell').hidden = false;
+      notice('err', 'That link is damaged or incomplete, so the site can\'t be shown. Ask the sender to copy the whole link again.');
+      return;
+    }
+    document.querySelector('.shell').hidden = true;
+    if (siteView) siteView.remove();
+    siteView = document.createElement('div');
+    siteView.className = 'site-view';
+    siteView.innerHTML = '<iframe title="Published site" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox"></iframe>' +
+      '<div class="site-badge" id="badge"><a href="' + esc(baseUrl()) + '" target="_blank" rel="noopener">Made with Launchpad</a><button type="button" aria-label="Hide badge" id="badge-x">×</button></div>';
+    document.body.appendChild(siteView);
+    siteView.querySelector('iframe').srcdoc = html;
+    $('badge-x').onclick = function () { $('badge').hidden = true; };
+    document.title = titleOf(html, 'Launchpad site');
+  }
+  window.addEventListener('hashchange', route);
+
+  /* ---------- download ---------- */
+  function downloadFile(name, html) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+    a.download = name + '.html';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+    notice('ok', '<strong>Saved ' + esc(name) + '.html.</strong> Upload it to any host, for example by dragging it onto <a href="https://app.netlify.com/drop" target="_blank" rel="noopener">Netlify Drop</a>.');
+  }
+
+  /* ---------- publish ---------- */
+  async function publish() {
+    if (busy) return;
+    var name = clean($('sitename').value).replace(/-$/, '');
+    var html = build(code.value);
+    notice('', ''); $('log').innerHTML = ''; $('log').hidden = true;
+    if (!name) { notice('err', 'Choose a site name first, for example <span class="mono">my-portfolio</span>.'); return; }
+    if (!html.trim()) { notice('err', 'There is no HTML to publish. Upload a file or paste your code.'); return; }
+    var zfiles = null, flat = html;
+    try { zfiles = siteFiles(); if (zfiles) flat = inlineAssets(html, zfiles, bundle.entry); }
+    catch (e) { notice('err', 'Could not prepare the zip contents: ' + esc(e.message || 'unknown error')); return; }
+    if (host === 'file') { downloadFile(name, flat); return; }
+    if (host === 'link') { return makeLink(name, flat); }
+    var token = $('token').value.trim();
+    if (!token) { notice('err', 'Paste your ' + (host === 'netlify' ? 'Netlify' : 'GitHub') + ' access token first. The steps above show where to get one.'); return; }
+    if ($('remember').checked) { tokens[host] = token; } else { delete tokens[host]; }
+    store('launchpad-tokens', tokens);
+
+    busy = true; var btn = $('publish-btn'), label = btn.textContent; btn.disabled = true; btn.textContent = 'Publishing…';
+    try {
+      var url = host === 'netlify' ? await publishNetlify(name, zfiles || html, token) : await publishGitHub(name, zfiles || html, token);
+      log('Live at ' + url, 'ok');
+      notice('ok', '<strong>' + esc(name) + ' is live.</strong> <a class="url" href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(url) + '</a> <button class="btn" type="button" data-copy="' + esc(url) + '">Copy link</button>');
+      history = history.filter(function (h) { return !(h.name === name && h.host === host); });
+      history.unshift({ name: name, host: host, url: url, title: titleOf(html, name), updated: new Date().toISOString() });
+      store('launchpad-history', history.slice(0, 50));
+      renderList();
+    } catch (e) {
+      var msg;
+      if (e.network) msg = window.self !== window.top
+        ? 'The connection was blocked by the page this copy is running in. Download this file and open it directly in your browser, then publish again.'
+        : 'Couldn\'t reach ' + (host === 'netlify' ? 'Netlify' : 'GitHub') + '. Check your internet connection and try again.';
+      else if (e.status === 401 || e.status === 403) msg = 'The token was refused. Check that you copied the whole token' + (host === 'github' ? ' and that it has the repo scope' : '') + ', then try again.';
+      else msg = e.message || 'Something went wrong. Try again.';
+      log(msg, 'err');
+      notice('err', esc(msg));
+    } finally {
+      busy = false; btn.disabled = false; btn.textContent = label;
+    }
+  }
+
+  /* ---------- list ---------- */
+  function renderList() {
+    $('count').textContent = history.length ? history.length + (history.length === 1 ? ' site published' : ' sites published') : '';
+    if (!history.length) { $('list').innerHTML = '<div class="empty">Nothing published from this browser yet. Sites you publish show up here with their links.</div>'; return; }
+    $('list').innerHTML = history.map(function (h, i) {
+      return '<div class="row"><span class="pill">' + (h.host === 'netlify' ? 'Netlify' : h.host === 'github' ? 'GitHub' : 'Link') + '</span>' +
+        '<div class="row-main"><div class="row-title">' + esc(h.title) + '</div><div class="row-meta mono">' + esc(h.url.length > 90 ? h.url.slice(0, 90) + '…' : h.url) + '</div></div>' +
+        '<div class="row-actions"><a href="' + esc(h.url) + '" target="_blank" rel="noopener">Open</a><button type="button" data-copy="' + esc(h.url) + '">Copy link</button><button type="button" data-forget="' + i + '">Remove from list</button></div></div>';
+    }).join('');
+  }
+
+  function copy(text, btn) {
+    var old = btn.textContent;
+    var done = function (t) { btn.textContent = t; setTimeout(function () { btn.textContent = old; }, 1500); };
+    try { navigator.clipboard.writeText(text).then(function () { done('Copied'); }, function () { done('Copy failed'); }); } catch (e) { done('Copy failed'); }
+  }
+  document.addEventListener('click', function (e) {
+    var c = e.target.closest('[data-copy]'); if (c) copy(c.getAttribute('data-copy'), c);
+    var f = e.target.closest('[data-forget]'); if (f) { history.splice(+f.getAttribute('data-forget'), 1); store('launchpad-history', history); renderList(); }
+  });
+
+  /* ---------- wiring ---------- */
+  code.value = STARTER; $('sitename').value = 'my-site';
+  var t;
+  code.addEventListener('input', function () { clearTimeout(t); t = setTimeout(refresh, 250); });
+  $('sitename').addEventListener('input', function (e) { e.target.value = clean(e.target.value); updateAddr(); });
+  $('mode-upload').onclick = function () { $('mode-upload').setAttribute('aria-pressed', 'true'); $('mode-paste').setAttribute('aria-pressed', 'false'); $('drop').hidden = false; };
+  $('mode-paste').onclick = function () { $('mode-upload').setAttribute('aria-pressed', 'false'); $('mode-paste').setAttribute('aria-pressed', 'true'); $('drop').hidden = true; code.focus(); };
+  $('dev-desktop').onclick = function () { $('dev-desktop').setAttribute('aria-pressed', 'true'); $('dev-phone').setAttribute('aria-pressed', 'false'); $('stage').classList.remove('phone'); };
+  $('dev-phone').onclick = function () { $('dev-desktop').setAttribute('aria-pressed', 'false'); $('dev-phone').setAttribute('aria-pressed', 'true'); $('stage').classList.add('phone'); };
+  ['link', 'netlify', 'github', 'file'].forEach(function (k) { $('host-' + k).onclick = function () { setHost(k); notice('', ''); }; });
+  $('publish-btn').onclick = publish;
+
+  function loadFile(f) {
+    if (!f) return;
+    var l = langFromName(f.name);
+    if (!l) { $('loaded').style.color = 'var(--warn)'; $('loaded').textContent = f.name + ' is not a supported code file.'; return; }
+    var r = new FileReader();
+    r.onload = function () {
+      setLang(l); code.value = r.result; refresh();
+      $('loaded').style.color = ''; $('loaded').textContent = 'Loaded ' + f.name + ' (' + LANGS[l].n + ', ' + fmtSize(f.size) + ')';
+      var base = clean(f.name.replace(/\.[a-z0-9]+$/i, '')).replace(/-$/, '');
+      if (base) { $('sitename').value = base; updateAddr(); }
+    };
+    r.readAsText(f);
+  }
+  $('lang').onchange = function () { var n = this.value, prev = S0[curLang]; if (!code.value.trim() || code.value === prev) code.value = S0[n] || code.value; curLang = n; refresh(); };
+  $('file').addEventListener('change', function (e) { handleFile(e.target.files[0]); e.target.value = ''; });
+  var drop = $('drop');
+  ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
+  ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('over'); }); });
+  drop.addEventListener('drop', function (e) { handleFile(e.dataTransfer.files[0]); });
+
+  updateAccountUI();
+  $('account-btn').onclick = function () { if (session) { sbLogOut(); clearSession(); } else { openAuth(); } };
+  $('auth-close').onclick = closeAuth;
+  $('auth-overlay').addEventListener('click', function (e) { if (e.target.id === 'auth-overlay') closeAuth(); });
+  $('auth-tab-login').onclick = function () { setAuthMode('login'); };
+  $('auth-tab-signup').onclick = function () { setAuthMode('signup'); };
+  $('auth-submit').onclick = submitAuth;
+  $('ai-go').onclick = aiGenerate;
+
+  setHost(HOSTS[load('launchpad-host', 'link')] ? load('launchpad-host', 'link') : 'link');
+  refresh(); renderList(); route();
+})();
+</script>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)},code=$('code'),pv=$('preview'),con=$('dcon'),runtime=[];
+var esc=function(s){return String(s).replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})};
+var HOOK='<script>(function(){function s(t,a){parent.postMessage({dm:1,t:t,m:[].map.call(a,function(x){try{return typeof x==="object"?JSON.stringify(x):String(x)}catch(e){return String(x)}}).join(" ")},"*")}["log","info","warn","error"].forEach(function(k){var o=console[k];console[k]=function(){s(k,arguments);o.apply(console,arguments)}});window.addEventListener("error",function(e){s("exc",[e.message+(e.lineno?" (line "+e.lineno+")":"")])});window.addEventListener("unhandledrejection",function(e){s("exc",["Unhandled promise: "+e.reason])});var l="",iv=setInterval(function(){var o=document.getElementById("o");if(o&&o.textContent!==l){l=o.textContent;parent.postMessage({dm:1,t:"out",m:l},"*")}},400);setTimeout(function(){clearInterval(iv)},60000);})();<\/script>';
+function inject(v){v=String(v);var m=/<head[^>]*>/i.exec(v);if(m)return v.slice(0,m.index+m[0].length)+HOOK+v.slice(m.index+m[0].length);var d=/<!doctype[^>]*>/i.exec(v);return d?v.slice(0,d[0].length)+HOOK+v.slice(d[0].length):HOOK+v}
+var d0=Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype,'srcdoc');
+Object.defineProperty(pv,'srcdoc',{configurable:true,get:function(){return d0.get.call(this)},set:function(v){d0.set.call(this,inject(v))}});
+function log(t,m){if(con.dataset.on!=='1'){con.innerHTML='';con.dataset.on='1'}var d=document.createElement('div');d.className=t;d.textContent=({e:'✖ ',w:'⚠ ',i:'› '}[t])+m;con.appendChild(d);con.scrollTop=1e9}
+window.addEventListener('message',function(e){var d=e.data;if(!d||!d.dm)return;
+  if(d.t==='out'){if($('lang').value==='html')return;window.__dmOutAt=Date.now();window.__dmErrs=window.__dmErrs||[];var lo=window.__dmLast||'',tx=d.m.indexOf(lo)===0?d.m.slice(lo.length):d.m;window.__dmLast=d.m;
+    tx.split('\n').forEach(function(l){if(!l.trim())return;var er=/error|exception|traceback|panic|fatal|undefined|not defined|undeclared|cannot find|unresolved|syntax|unexpected|expected|not found|nil value/i.test(l);if(er){window.__dmErrs.push(l);runtime.push({t:'e',m:l})}log(er?'e':'i',l)});return}
+  var t=d.t==='error'||d.t==='exc'?'e':d.t==='warn'?'w':'i';runtime.push({t:t,m:d.m});log(t,d.m)});
+function kind(){var l=$('lang').value;return l==='html'?'html':l==='javascript'?'js':l==='typescript'?'ts':l==='json'?'json':l==='markdown'?'md':/^(c|cpp|java|go|rust|csharp|kotlin|swift|php)$/.test(l)?'brace':'other'}
+function runJS(src){var f=document.createElement('iframe');f.sandbox='allow-scripts';f.style.display='none';f.srcdoc='<!DOCTYPE html><html><head>'+HOOK+'</head><body><script>'+src+'<\/script></body></html>';document.body.appendChild(f);setTimeout(function(){f.remove()},1500)}
+function prompt_(){var er=runtime.filter(function(r){return r.t==='e'}).map(function(r){return'- '+r.m}).join('\n')||'- (none captured)';return'Please debug this '+$('lang').value+' code. Explain each bug, then give the fixed full code.\n\nErrors seen:\n'+er+'\n\nCode:\n```\n'+code.value+'\n```'}
+function analyze(){
+  var s=code.value,k=kind(),out=[],add=function(lv,t,d){out.push({lv:lv,t:t,d:d})};
+  if(!s.trim()){add('warn','No code','Add some code first.');return render(out)}
+  add('ok','Language: '+$('lang').options[$('lang').selectedIndex].text,s.split('\n').length+' lines, '+s.length+' characters');
+  if(k==='json'){try{JSON.parse(s)}catch(e){add('error','Invalid JSON',e.message)}}
+  if(k==='js'||k==='ts'||k==='json'||k==='brace'){
+    var st=[],P={')':'(',']':'[','}':'{'},ln=1,bad=null,q=null,x=false;
+    for(var i=0;i<s.length;i++){var c=s[i];if(c==='\n'){ln++;if(q&&q!=='`')q=null}
+      if(q){if(x)x=false;else if(c==='\\')x=true;else if(c===q)q=null;continue}
+      if(c==='"'||c==="'"||c==='`'){q=c;continue}
+      if('([{'.indexOf(c)>-1)st.push({c:c,l:ln});else if(P[c]){var t=st.pop();if(!t||t.c!==P[c]){bad={c:c,l:ln};break}}}
+    if(bad)add('error','Unexpected “'+bad.c+'” on line '+bad.l,'A closing bracket has no matching opener.');
+    else if(st.length){var u=st[st.length-1];add('error','Unclosed “'+u.c+'” opened on line '+u.l,'Add the matching closing bracket.')}}
+  var scripts=[];
+  if(k==='html'){
+    var re=/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi,m;while((m=re.exec(s)))scripts.push(m[1]);
+    var doc=new DOMParser().parseFromString(s,'text/html'),ids={};
+    doc.querySelectorAll('[id]').forEach(function(e){ids[e.id]=(ids[e.id]||0)+1});
+    Object.keys(ids).filter(function(i){return ids[i]>1}).forEach(function(i){add('warn','Duplicate id “'+i+'”','IDs should be unique.')});
+    ['div','span','ul','ol','li','table','section','button','a','form','script','style'].forEach(function(t){
+      var o=(s.match(new RegExp('<'+t+'[\\s>]','gi'))||[]).length,c=(s.match(new RegExp('</'+t+'>','gi'))||[]).length;
+      if(o!==c)add('error','Mismatched <'+t+'> tags',o+' opening vs '+c+' closing.')});
+    if(!/<!doctype/i.test(s))add('warn','Missing <!DOCTYPE html>','Browsers may use quirks mode.');
+    if(!/<meta[^>]+viewport/i.test(s))add('warn','No viewport meta tag','Page may look tiny on phones.');
+    if(/<img(?![^>]*\balt=)/i.test(s))add('warn','Image without alt text','Add alt for accessibility.');
+    var rx=/getElementById\(\s*["']([^"']+)["']\s*\)/g,g,seen={},all=s;
+    while((g=rx.exec(all))){var id=g[1];if(!doc.getElementById(id)&&!seen[id]&&!new RegExp('id\\s*=\\s*["\']'+id).test(all)){seen[id]=1;add('error','getElementById("'+id+'") finds nothing','No element has that id. Check for a typo.')}}
+  }else if(k==='js')scripts=[s];
+  scripts.forEach(function(sc){try{new Function(sc)}catch(e){add('error','JavaScript syntax error',e.message)}
+    if(/\bvar\s/.test(sc))add('warn','Uses “var”','Prefer let or const.');
+    if(/[^=!<>]==[^=]/.test(sc))add('warn','Loose equality (==)','Use === to avoid coercion bugs.');
+    if(/\beval\(/.test(sc))add('warn','Uses eval()','Risky and slow.');
+    if(/console\.log/.test(sc))add('warn','console.log left in code','Remove before publishing.')});
+  if(!/^(html|javascript|typescript|json)$/.test($('lang').value)&&window.fixAll)fixAll(s,$('lang').value,[]).log.forEach(function(m){add('error','Found: '+m,'Auto-fix can repair this.')});
+  runtime.filter(function(r){return r.t==='e'}).forEach(function(r){add('error','Runtime error',r.m)});
+  if(!out.some(function(o){return o.lv==='error'}))add('ok','No hard errors found','Looks clean. Ready to publish.');
+  render(out);
+}
+function render(a){var o={error:0,warn:1,ok:2};a.sort(function(x,y){return o[x.lv]-o[y.lv]});
+  var n=a.filter(function(i){return i.lv==='error'}).length;$('dstat').textContent=n?n+' error'+(n>1?'s':''):'clean';
+  $('iss').innerHTML=a.map(function(i){return'<div class="it '+i.lv+'"><div>'+{error:'🐞',warn:'⚠️',ok:'✅'}[i.lv]+'</div><div><b>'+esc(i.t)+'</b><small>'+esc(i.d)+'</small></div></div>'}).join('')}
+function setCode(lang,text){var l=$('lang');l.value=lang;if(l.onchange)l.onchange.call(l);code.value=text;code.dispatchEvent(new Event('input',{bubbles:true}));window.scrollTo({top:0,behavior:'smooth'})}
+function go(){runtime=[];window.__dmLast='';window.__dmErrs=[];window.__dmOutAt=0;con.dataset.on='0';con.textContent='Running…';var k=kind(),lang=$('lang').value;
+  if(k==='js')runJS(code.value);else if(k!=='md'&&k!=='json')code.dispatchEvent(new Event('input',{bubbles:true}));
+  var rem=!/^(html|javascript|markdown|json)$/.test(lang),mx={python:30000,typescript:10000,lua:10000}[lang]||20000,t0=Date.now();
+  (function w(){if(rem&&!window.__dmOutAt&&Date.now()-t0<mx){setTimeout(w,300);return}setTimeout(function(){if(con.dataset.on!=='1')con.textContent='No console output. No errors caught.';analyze()},rem?800:900)})()}
+var SAMPLE='<!DOCTYPE html>\n<html><body>\n<h1 id="title">Hello</h1>\n<button onclick="count()">Click me</button>\n<p>Clicks: <span id="n">0</span></p>\n<script>\nvar clicks = 0\nfunction count(){\n  clicks++;\n  document.getElementById("num").textContent = clicks;\n}\nconsole.log("loaded");\nundefinedFunction();\n<\/script>\n</body></html>';
+$('d-go').onclick=go;$('d-sample').onclick=function(){setCode('html',SAMPLE);setTimeout(go,300)};
+$('d-copy').onclick=function(){var b=$('d-copy');(navigator.clipboard?navigator.clipboard.writeText(prompt_()):Promise.reject()).then(function(){b.textContent='Copied ✓'}).catch(function(){window.prompt('Copy this:',prompt_())});setTimeout(function(){b.textContent='Copy AI debug prompt'},1500)};
+
+var LS=[
+{t:'Read the error message',lv:'Beginner',lang:'javascript',why:'The console tells you what broke and often where. Read it word by word first.',bug:'const prices = [5, 10, 15];\nconsole.log("Total: " + prices.sum());',hint:'The error says “prices.sum is not a function”. Do arrays have a sum method?',fix:'Arrays have no sum(). Use reduce to add the values.',good:'const prices = [5, 10, 15];\nconst total = prices.reduce((a, b) => a + b, 0);\nconsole.log("Total: " + total);'},
+{t:'Typos cause ReferenceErrors',lv:'Beginner',lang:'javascript',why:'“x is not defined” usually means a misspelled name or wrong scope.',bug:'let score = 10;\nconsole.log("Score: " + scor);',hint:'Compare the name in the log with the declaration, letter by letter.',fix:'scor was never declared. Fix the spelling.',good:'let score = 10;\nconsole.log("Score: " + score);'},
+{t:'Off-by-one errors',lv:'Beginner',lang:'javascript',why:'Arrays start at 0, so the last index is length - 1.',bug:'const items = ["a", "b", "c"];\nfor (let i = 0; i <= items.length; i++) {\n  console.log(items[i].toUpperCase());\n}',hint:'What is the last valid index? Look at the loop condition.',fix:'<= runs once too often, reading undefined. Use <.',good:'const items = ["a", "b", "c"];\nfor (let i = 0; i < items.length; i++) {\n  console.log(items[i].toUpperCase());\n}'},
+{t:'Types can lie to you',lv:'Intermediate',lang:'javascript',why:'Some bugs throw no error. The answer is just wrong, so print and check values.',bug:'const a = "5";\nconst b = 3;\nconsole.log("Sum:", a + b);',hint:'Does 53 look like a sum? Check what type a is.',fix:'With a string, + joins text. Convert with Number() first.',good:'const a = "5";\nconst b = 3;\nconsole.log("Sum:", Number(a) + b);'},
+{t:'Async timing',lv:'Intermediate',lang:'javascript',why:'Code after setTimeout, fetch or promises runs before the result is ready.',bug:'let data;\nsetTimeout(() => { data = 42; }, 100);\nconsole.log("data is", data);',hint:'Which runs first: the log, or the timer callback?',fix:'The log runs immediately. Use the value inside the callback or await a promise.',good:'setTimeout(() => {\n  const data = 42;\n  console.log("data is", data);\n}, 100);'},
+{t:'Wrong element id (HTML)',lv:'Intermediate',lang:'html',why:'If JavaScript cannot find an element it gets null, and property access crashes.',bug:'<button onclick="document.getElementById(\'out\').textContent = \'Hi!\'">Say hi</button>\n<p id="output"></p>',hint:'Click the button in the preview, then compare the two ids.',fix:'The code looks for out but the element is output. Make them match.',good:'<button onclick="document.getElementById(\'output\').textContent = \'Hi!\'">Say hi</button>\n<p id="output"></p>'}];
+var done={},cur=-1;try{done=JSON.parse(localStorage.getItem('dm_l')||'{}')}catch(e){}
+function lessons(){var n=Object.keys(done).length;$('lp').textContent=n+' / '+LS.length+' learned';$('pb').style.width=(n/LS.length*100)+'%';
+  $('lg').innerHTML=LS.map(function(l,i){return'<button class="ls'+(done[i]?' dn':'')+(i===cur?' act':'')+'" data-i="'+i+'" type="button"><span class="ck">'+(done[i]?'✓':'')+'</span><b>'+(i+1)+'. '+esc(l.t)+'</b><span class="lv">'+l.lv+'</span></button>'}).join('');
+  var l=LS[cur];$('ld').innerHTML=l?'<div class="ld"><b>'+esc(l.t)+'</b><div class="bx">'+esc(l.why)+'</div>Buggy code:<pre>'+esc(l.bug)+'</pre><div class="bar"><button class="btn primary" data-a="load" type="button">▶ Load &amp; debug it</button><button class="btn" data-a="hint" type="button">💡 Hint</button><button class="btn" data-a="fix" type="button">✅ Show fix</button><button class="btn" data-a="done" type="button">'+(done[cur]?'Unmark':'Mark learned')+'</button></div><div id="lx"></div></div>':''}
+$('lg').onclick=function(e){var b=e.target.closest('.ls');if(!b)return;cur=+b.dataset.i;lessons()};
+$('ld').onclick=function(e){var a=e.target.closest('[data-a]');if(!a)return;var l=LS[cur],x=$('lx'),k=a.dataset.a;
+  if(k==='load'){setCode(l.lang,l.bug);setTimeout(go,300)}
+  if(k==='hint')x.innerHTML='<div class="bx">💡 '+esc(l.hint)+'</div>';
+  if(k==='fix')x.innerHTML='<div class="bx">'+esc(l.fix)+'</div><pre>'+esc(l.good)+'</pre><button class="btn" data-a="loadfix" type="button">Load fixed version</button>';
+  if(k==='loadfix'){setCode(l.lang,l.good);setTimeout(go,300)}
+  if(k==='done'){if(done[cur])delete done[cur];else done[cur]=1;try{localStorage.setItem('dm_l',JSON.stringify(done))}catch(er){}lessons()}};
+lessons();
+})();
+
+function lev(a,b){var m=[],i,j;for(i=0;i<=a.length;i++)m[i]=[i];for(j=0;j<=b.length;j++)m[0][j]=j;for(i=1;i<=a.length;i++)for(j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return m[a.length][b.length]}
+function closest(w,list,max){var b=null,d=max+1;list.forEach(function(x){if(x===w)return;var v=lev(w.toLowerCase(),x.toLowerCase());if(v<d){d=v;b=x}});return b}
+function fixCode(s,k,errs){
+  var log=[],t=s,html=k==='html',m;
+  function note(x){log.push(x)}
+  if(k==='json'){var j=t.replace(/,(\s*[}\]])/g,'$1');if(j!==t){t=j;note('Removed trailing comma(s) from the JSON')}return{text:t,log:log}}
+  if(html){
+    var ids=[];t.replace(/\bid\s*=\s*["']([^"']+)["']/g,function(_,i){ids.push(i)});
+    t=t.replace(/getElementById\(\s*(["'])([^"']+)\1\s*\)/g,function(a,q,id){
+      if(ids.indexOf(id)>-1)return a;var c=closest(id,ids,3);
+      if(c){note('Fixed id typo: “'+id+'” → “'+c+'”');return'getElementById('+q+c+q+')'}return a});
+    var seen={};t=t.replace(/\bid\s*=\s*(["'])([^"']+)\1/g,function(a,q,id){
+      if(!seen[id]){seen[id]=1;return a}var n=id+'-2';note('Renamed duplicate id “'+id+'” → “'+n+'”');return'id='+q+n+q});
+    ['div','span','ul','ol','li','table','section','button','a','form'].forEach(function(tag){
+      var o=(t.match(new RegExp('<'+tag+'[\\s>]','gi'))||[]).length,c=(t.match(new RegExp('</'+tag+'>','gi'))||[]).length;
+      if(o>c){var add=new Array(o-c+1).join('</'+tag+'>'),i=t.search(/<\/body>/i);t=i>-1?t.slice(0,i)+add+'\n'+t.slice(i):t+add;note('Added '+(o-c)+' missing </'+tag+'>')}
+      else if(c>o){for(var n=c-o;n>0;n--){var p=t.lastIndexOf('</'+tag+'>');t=t.slice(0,p)+t.slice(p+tag.length+3)}note('Removed '+(c-o)+' extra </'+tag+'>')}});
+    if(/<img(?![^>]*\balt=)/i.test(t)){t=t.replace(/<img(?![^>]*\balt=)/gi,'<img alt=""');note('Added empty alt text to images')}
+    if(!/<meta[^>]+viewport/i.test(t)){var mv='<meta name="viewport" content="width=device-width, initial-scale=1">';
+      if(/<head[^>]*>/i.test(t))t=t.replace(/<head[^>]*>/i,function(h){return h+mv});
+      else if(/<html[^>]*>/i.test(t))t=t.replace(/<html[^>]*>/i,function(h){return h+'<head><meta charset="utf-8">'+mv+'</head>'});
+      else t=mv+'\n'+t;note('Added a viewport meta tag')}
+    if(!/<!doctype/i.test(t)){t='<!DOCTYPE html>\n'+t;note('Added <!DOCTYPE html>')}
+  }
+  if(k==='html'||k==='js'||k==='ts'){
+    var n0=t;t=t.replace(/(for\s*\([^;]*;\s*\w+\s*)<=(\s*[\w$.]+\.length\s*;)/g,'$1<$2');if(t!==n0)note('Fixed off-by-one loop: <= length → < length');
+    n0=t;t=t.replace(/([^=!<>])==(?!=)/g,'$1===').replace(/!=(?!=)/g,'!==');if(t!==n0)note('Replaced == / != with === / !==');
+    n0=t;t=t.replace(/\bvar\s+(?=[A-Za-z_$])/g,'let ');if(t!==n0)note('Replaced var with let');
+    var decl=[];t.replace(/\b(?:let|const|function)\s+([A-Za-z_$][\w$]*)/g,function(_,n){decl.push(n)});
+    var done={};
+    (errs||[]).forEach(function(e){
+      if((m=/([A-Za-z_$][\w$]*) is not defined/.exec(e))&&!done[m[1]]){var w=m[1];done[w]=1;var c=closest(w,decl,2);
+        if(c){t=t.replace(new RegExp('\\b'+w+'\\b','g'),c);note('Fixed typo: “'+w+'” → “'+c+'”')}
+        else{var r=new RegExp('^([ \\t]*)('+w+'\\s*\\([^)]*\\)\\s*;?)[ \\t]*$','m');
+          if(r.test(t)){t=t.replace(r,'$1// removed (not defined): $2');note('Commented out call to undefined “'+w+'”')}}}
+      if(/\.sum is not a function/.test(e)&&/(\w+)\.sum\(\)/.test(t)){t=t.replace(/(\w+)\.sum\(\)/g,'$1.reduce((a, b) => a + b, 0)');note('Replaced .sum() with reduce')}});
+  }
+  return{text:t,log:log}
+}
+
+var UND=[/name '([\w$]+)' is not defined/,/undefined: ([\w$]+)/,/symbol:\s+variable ([\w$]+)/,/'([\w$]+)' undeclared/,/undeclared identifier '?([\w$]+)/,/undefined local variable or method .([\w$]+)/,/global '([\w$]+)'/,/cannot find value .([\w$]+)/,/unresolved reference:? '?([\w$]+)/,/cannot find '([\w$]+)' in scope/,/Undefined variable:? \$?([\w$]+)/,/name '([\w$]+)' does not exist/];
+var RULES={
+python:[[/^(\s*(?:if|elif|while|for|def|class|except|with)\b[^#\n]*?[^:\s,(\[{\\#])[ \t]*(#.*)?$/gm,function(m,a,c){return a+':'+(c?'  '+c:'')},'Added missing colon'],[/^(\s*(?:else|try|finally))[ \t]*$/gm,'$1:','Added missing colon after else/try/finally'],[/^(\s*)print\s+(?!\()(.+)$/gm,'$1print($2)','Python 3: print needs parentheses'],[/^(\s*(?:if|elif|while)\s+[^=\n]*?[\w\])])\s=\s(?!=)/gm,'$1 == ','Used == instead of = in a condition'],[/\s==\s*None\b/g,' is None','Used “is None” instead of == None'],[/\t/g,'    ','Replaced tabs with spaces']],
+lua:[[/!=/g,'~=','Lua uses ~= for not-equal'],[/&&/g,' and ','Lua uses “and”'],[/\|\|/g,' or ','Lua uses “or”'],[/^(\s*(?:else)?if\b(?:(?!\bthen\b)[^\n])*?)[ \t]*$/gm,'$1 then','Added missing “then”'],[/^(\s*(?:for|while)\b(?:(?!\bdo\b)[^\n])*?)[ \t]*$/gm,'$1 do','Added missing “do”']],
+ruby:[[/\belseif\b/g,'elsif','Ruby uses elsif'],[/\belse if\b/g,'elsif','Ruby uses elsif']],
+bash:[[/^(\s*[A-Za-z_]\w*)\s+=\s+(\S.*)$/gm,'$1=$2','No spaces around = in assignments'],[/\[\s+\$(\w+)/g,'[ "$$$1"','Quoted variable in test'],[/^(\s*if\b[^\n]*\])[ \t]*$/gm,'$1; then','Added missing “then”']],
+go:[[/\bfmt\.(print|println|printf|sprintf|errorf)\(/g,function(m,f){return'fmt.'+f[0].toUpperCase()+f.slice(1)+'('},'Exported Go names are capitalized (fmt.Println)'],[/^(\s*)while\s*\(?([^{\n]*?)\)?\s*\{/gm,'$1for $2 {','Go has no while: use for']],
+rust:[[/\b(println|print|format|vec|panic)\(/g,'$1!(','Macros need ! (println!)']],
+java:[[/\bstring(\s+\w+\s*[=;])/g,'String$1','String is capitalized'],[/\bsystem\.out\b/g,'System.out','System is capitalized'],[/System\.out\.(?!println\b|print\b|printf\b|format\b|flush\b)\w+\(/g,'System.out.println(','Fixed print method name']],
+csharp:[[/\bconsole\.(\w)/g,function(m,c){return'Console.'+c.toUpperCase()},'Console is capitalized'],[/\bConsole\.writeline\b/g,'Console.WriteLine','Console.WriteLine capitalization']],
+kotlin:[[/^(\s*)println\s+(".*")\s*$/gm,'$1println($2)','println needs parentheses']],
+swift:[[/^(\s*)print\s+(".*")\s*$/gm,'$1print($2)','print needs parentheses'],[/\bprintln\(/g,'print(','Swift uses print()']],
+markdown:[[/^(#{1,6})(?=[^#\s])/gm,'$1 ','Added space after # in heading'],[/\]\s+\(/g,'](','Fixed broken link ](…)'],[/^-(?=[^-\s])/gm,'- ','Added space after list dash']],
+php:[[/("(?:[^"\\\n]|\\.)*")\s*\+\s*(\$\w+)/g,'$1 . $2','PHP joins text with . not +'],[/(\$\w+)\s*\+\s*("(?:[^"\\\n]|\\.)*")/g,'$1 . $2','PHP joins text with . not +']],
+c:[],cpp:[]};
+var SEMI={c:1,cpp:1,java:1,csharp:1,php:1,perl:1,rust:1};
+var TY='int|float|double|char|long|short|bool|boolean|byte|auto|string|String|std::string|unsigned|size_t|var|decimal';
+var ST={rust:/^(?:let\b.*|e?print(?:ln)?!\(.*\))$/};
+ST.d=new RegExp('^(?:(?:return|break|continue|throw|echo|print|printf|puts|my|our|use|new|import|using|package)\\b.*|(?:std::)?cout\\b.*|(?:'+TY+')\\s+\\$?\\w+(?:\\[\\d*\\])?\\s*(?:=.*)?|\\$?[A-Za-z_][\\w.\\[\\]>-]*\\s*(?:[-+*\\/]?=[^=].*|\\+\\+|--)|[\\w:.]+\\(.*\\))$');
+var SKIP=/^\s*(?:if|else|for|while|switch|do|try|catch|finally|case|default|class|struct|enum|namespace|interface|#|\/\/|\/\*|\*|\}|<\?)/;
+function semis(t,lang,log){var L=t.split('\n'),n=0,re=ST[lang]||ST.d;
+  L.forEach(function(l,i){var c=l.replace(/\/\/.*$/,'').replace(/(^|\s)#(?!include|define|if|endif|else|pragma|ifdef|ifndef).*$/,'').replace(/\s+$/,'');
+    if(!c.trim()||/[;{}(,\[:\\]$/.test(c)||SKIP.test(c)||!re.test(c.trim()))return;
+    var nx=(L.slice(i+1).filter(function(z){return z.trim()})[0]||'').trim();if(nx[0]==='{'||nx[0]==='.')return;
+    L[i]=c+';'+l.slice(c.length);n++});
+  if(n)log.push('Added '+n+' missing semicolon'+(n>1?'s':''));return L.join('\n')}
+function cnt(s,r){return(s.match(r)||[]).length}
+function blocks(t,lang,log){var s=t.replace(/(--|#).*$/gm,''),add='';
+  if(lang==='lua'){var d=cnt(s,/\b(function|if|for|while)\b/g)-cnt(s,/\bend\b/g);if(d>0){add=new Array(d+1).join('\nend');log.push('Added '+d+' missing “end”')}}
+  if(lang==='ruby'){var d=cnt(s,/^\s*(def|class|module|if|unless|while|until|for|case|begin)\b/gm)+cnt(s,/\bdo\b\s*(\|[^|]*\|)?\s*$/gm)-cnt(s,/^\s*end\b/gm);if(d>0){add=new Array(d+1).join('\nend');log.push('Added '+d+' missing “end”')}}
+  if(lang==='bash'){[['if','fi',/^\s*if\b/gm,/^\s*fi\b/gm],['loop','done',/^\s*(for|while|until)\b/gm,/^\s*done\b/gm],['case','esac',/^\s*case\b/gm,/^\s*esac\b/gm]].forEach(function(b){var d=cnt(s,b[2])-cnt(s,b[3]);if(d>0){add+=new Array(d+1).join('\n'+b[1]);log.push('Added '+d+' missing “'+b[1]+'”')}})}
+  return t.replace(/\s+$/,'')+add+'\n'}
+function typoAll(t,errs,log){var decl=[],m;t.replace(new RegExp('\\b(?:let|const|var|val|fn|func|def|function|'+TY+'|local|my|fun|class)\\s+\\$?([A-Za-z_]\\w*)','g'),function(_,n){decl.push(n)});
+  t.replace(/^\s*\$?([A-Za-z_]\w*)\s*=[^=]/gm,function(_,n){decl.push(n)});t.replace(/\bfor\s+(\w+)\s+in\b/g,function(_,n){decl.push(n)});
+  var seen={};(errs||[]).forEach(function(e){UND.some(function(r){if(!(m=r.exec(e)))return false;var w=m[1];if(!seen[w]){seen[w]=1;var c=closest(w,decl,2);if(c){t=t.replace(new RegExp('\\b'+w.replace(/\$/g,'\\$')+'\\b','g'),c);log.push('Fixed typo: “'+w+'” → “'+c+'”')}}return true})});return t}
+function fixAll(s,lang,errs){var K={html:'html',javascript:'js',typescript:'ts',json:'json'},r=K[lang]?fixCode(s,K[lang],errs):{text:s,log:[]},t=r.text,log=r.log.slice();
+  if(lang==='json'){var q=t;{try{JSON.parse(t)}catch(e){q=t.replace(/'([^'\n]*)'/g,'"$1"').replace(/([{,]\s*)([A-Za-z_]\w*)\s*:/g,'$1"$2":');if(q!==t){t=q;log.push('Quoted keys/strings in JSON')}}}return{text:t,log:log}}
+  if(!K[lang]||lang==='javascript'||lang==='typescript'){}
+  if(!K[lang]){(RULES[lang]||[]).forEach(function(x){var n=t.replace(x[0],x[1]);if(n!==t){t=n;log.push(x[2])}});
+    if(lang==='python'){var L=t.split('\n'),n=0;L.forEach(function(l,i){if(/:\s*$/.test(l.replace(/#.*$/,''))&&/^\s*(if|elif|else|for|while|def|class|try|except|finally|with)\b/.test(l)){var j=i+1;while(j<L.length&&!L[j].trim())j++;if(j<L.length){var a=l.match(/^\s*/)[0].length,b=L[j].match(/^\s*/)[0].length;if(b<=a){L[j]='    '+L[j].replace(/^\s*/,new Array(a+1).join(' '));n++}}}});if(n){t=L.join('\n');log.push('Indented '+n+' block body line(s)')}}
+    if(SEMI[lang])t=semis(t,lang,log);
+    if(/^(lua|ruby|bash)$/.test(lang))t=blocks(t,lang,log);
+    if(/^(c|cpp|java|csharp|go|rust|kotlin|swift|php)$/.test(lang)){var st=t.replace(/"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|\/\/.*$/gm,''),d=cnt(st,/\{/g)-cnt(st,/\}/g);if(d>0){t=t.replace(/\s+$/,'')+new Array(d+1).join('\n}')+'\n';log.push('Added '+d+' missing “}”')}}
+    if(/^(c|cpp|java|csharp|kotlin|swift|php|rust|go)$/.test(lang)){var n0=t;t=t.replace(/\b(if|while)\s*\(\s*([\w.$\[\]]+)\s*=\s*(?!=)([^=()]+)\)/g,'$1 ($2 == $3)');if(t!==n0)log.push('Used == instead of = in a condition')}
+    if(lang==='c'||lang==='cpp'){var inc=function(h,test){if(test.test(t)&&t.indexOf('#include <'+h+'>')<0){t='#include <'+h+'>\n'+t;log.push('Added #include <'+h+'>')}};if(lang==='c')inc('stdio.h',/\b(printf|scanf|puts)\s*\(/);else{inc('iostream',/\b(std::)?cout\b/);if(/\bcout\b/.test(t)&&!/std::cout|using namespace std/.test(t)){t=t.replace(/(#include[^\n]*\n)(?![\s\S]*#include)/,'$1using namespace std;\n');log.push('Added using namespace std')}}}
+    if(lang==='go'){if(!/^\s*package\s/m.test(t)){t='package main\n'+t;log.push('Added package main')}if(/\bfmt\./.test(t)&&!/import[^\n]*fmt|"fmt"/.test(t)){t=t.replace(/(package \w+\n)/,'$1import "fmt"\n');log.push('Added import "fmt"')}}
+    if(lang==='csharp'&&/\bConsole\./.test(t)&&!/using System;|System\.Console/.test(t)){t='using System;\n'+t;log.push('Added using System;')}
+    if(lang==='php'&&!/<\?php/.test(t)){t='<?php\n'+t;log.push('Added <?php opening tag')}
+    if(lang==='markdown'&&cnt(t,/^```/gm)%2){t=t.replace(/\s+$/,'')+'\n```\n';log.push('Closed an unclosed code fence')}
+    if(/^(rust|kotlin|swift)$/.test(lang)){var kw={rust:'let',kotlin:'val',swift:'let'}[lang],nw={rust:'let mut',kotlin:'var',swift:'var'}[lang];t.replace(new RegExp('^\\s*'+kw+'\\s+(?:mut\\s+)?(\\w+)','gm'),function(a,v){if(new RegExp('^\\s*'+v+'\\s*(?:[-+*/]?=)(?!=)','m').test(t)&&new RegExp('^\\s*'+kw+'\\s+'+v+'\\b','m').test(t)){t=t.replace(new RegExp('^(\\s*)'+kw+'(\\s+'+v+'\\b)','m'),'$1'+nw+'$2');log.push('Made “'+v+'” mutable ('+nw+')')}})}
+    var before=t;t=typoAll(t,(errs||[]).concat([]),log)}
+  return{text:t,log:log}}
+
+(function(){
+var $=function(i){return document.getElementById(i)},code=$('code'),errs=[],prev=null;
+window.addEventListener('message',function(e){var d=e.data;if(d&&d.dm&&(d.t==='error'||d.t==='exc'))errs.push(d.m)});
+function kind(){var l=$('lang').value;return l==='html'?'html':l==='javascript'?'js':l==='typescript'?'ts':l==='json'?'json':'other'}
+var go=$('d-go'),fix=document.createElement('button'),undo=document.createElement('button'),box=document.createElement('div');
+fix.className='btn primary';fix.type='button';fix.id='d-fix';fix.textContent='✨ Auto-fix my code';
+undo.className='btn';undo.type='button';undo.hidden=true;undo.textContent='↩ Undo fix';
+go.after(fix);fix.after(undo);
+box.className='iss';box.id='fixlog';box.hidden=true;$('iss').previousElementSibling.before(box);
+function show(title,items,cls){box.hidden=false;box.innerHTML='<div class="it '+cls+'"><div>'+(cls==='ok'?'🔧':'ℹ️')+'</div><div><b>'+title+'</b>'+(items.length?'<small>'+items.map(function(x){return'• '+x.replace(/[&<>]/g,'')}).join('<br>')+'</small>':'')+'</div></div>'}
+function fire(){code.dispatchEvent(new Event('input',{bubbles:true}))}
+fix.onclick=function(){
+  if(!code.value.trim()){show('Nothing to fix yet',['Add some code first.'],'warn');return}
+  var lang=$('lang').value;fix.disabled=true;fix.textContent='Finding bugs…';errs=[];go.click();
+  var rem=!/^(html|javascript|markdown|json)$/.test(lang),mx={python:30000,typescript:10000,lua:10000}[lang]||20000,t0=Date.now();
+  (function w(){if(rem&&!window.__dmOutAt&&Date.now()-t0<mx){setTimeout(w,300);return}setTimeout(apply,rem?1000:1400)})();
+  function apply(){
+    var before=code.value,r=fixAll(before,lang,errs.concat(window.__dmErrs||[]));
+    fix.disabled=false;fix.textContent='✨ Auto-fix my code';
+    if(!r.log.length||r.text===before){show('No automatic fixes found',['Remaining issues need a human: logic bugs, wrong output or timing. Check the report below.'],'warn');return}
+    prev={t:before,l:lang};code.value=r.text;fire();undo.hidden=false;
+    show('Applied '+r.log.length+' fix'+(r.log.length>1?'es':''),r.log.concat(['Re-scanning… logic bugs may still need your eyes.']),'ok');
+    setTimeout(function(){go.click()},400)}};
+undo.onclick=function(){if(!prev)return;$('lang').value=prev.l;code.value=prev.t;fire();undo.hidden=true;show('Fix undone','Your original code is back.'.split('|'),'ok');setTimeout(function(){go.click()},400)};
+})();
+</script>
+<script>
+(function(){
+var LG=[['en','English'],['es','Español'],['fr','Français'],['de','Deutsch'],['pt','Português'],['it','Italiano'],['ru','Русский'],['ar','العربية'],['hi','हिन्दी'],['bn','বাংলা'],['zh-CN','中文 (简体)'],['ja','日本語'],['ko','한국어'],['tr','Türkçe'],['id','Bahasa Indonesia'],['sw','Kiswahili'],['yo','Yorùbá'],['ig','Igbo'],['ha','Hausa']];
+var $=function(i){return document.getElementById(i)};
+['code','preview','dcon','iss','fixlog'].forEach(function(i){var e=$(i);if(e){e.setAttribute('translate','no');e.classList.add('notranslate')}});
+document.querySelectorAll('pre,.ld pre,.brand').forEach(function(e){e.setAttribute('translate','no');e.classList.add('notranslate')});
+var sel=document.createElement('select');sel.id='tr-sel';sel.setAttribute('aria-label','Language');sel.title='Language (Google Translate)';
+sel.innerHTML=LG.map(function(l){return'<option value="'+l[0]+'">🌐 '+l[1]+'</option>'}).join('');
+var hdr=$('account-btn').parentNode;hdr.insertBefore(sel,hdr.firstChild);
+var gt=document.createElement('div');gt.id='gt_el';document.body.appendChild(gt);
+var ready=false,failed=false,want=null;
+function note(m){var n=$('tr-note');if(!n){n=document.createElement('div');n.id='tr-note';document.querySelector('.intro').before(n)}n.textContent=m}
+window.gtInit=function(){try{new google.translate.TranslateElement({pageLanguage:'en',autoDisplay:false},'gt_el');ready=true;if(want)apply(want)}catch(e){failed=true}};
+var sc=document.createElement('script');sc.src='https://translate.google.com/translate_a/element.js?cb=gtInit';sc.async=true;sc.onerror=function(){failed=true;if(want)note('Google Translate could not load here. Download the file and open it in your browser, or check your connection.')};document.head.appendChild(sc);
+function setCookie(v){var d=location.hostname;['','; domain='+d,'; domain=.'+d].forEach(function(x){document.cookie='googtrans='+v+'; path=/'+x+(v?'':'; expires=Thu, 01 Jan 1970 00:00:00 GMT')})}
+function apply(l,tries){tries=tries||0;var c=document.querySelector('.goog-te-combo');
+  if(!c){if(tries<40)setTimeout(function(){apply(l,tries+1)},250);else note('Google Translate is blocked on this page. Download the file and open it in your browser to translate.');return}
+  c.value=l==='en'?'':l;c.dispatchEvent(new Event('change'));document.documentElement.dir=/^(ar)$/.test(l)?'rtl':'ltr';
+  var n=$('tr-note');if(n)n.remove()}
+sel.onchange=function(){var l=sel.value;want=l;try{localStorage.setItem('pp_lang',l)}catch(e){}
+  if(l==='en'){setCookie('');var c=document.querySelector('.goog-te-combo');if(c){c.value='';c.dispatchEvent(new Event('change'))}document.documentElement.dir='ltr';var n=$('tr-note');if(n)n.remove();return}
+  if(failed){note('Google Translate could not load here. Download the file and open it in your browser.');return}
+  if(ready)apply(l);else note('Loading Google Translate…')};
+try{var sv=localStorage.getItem('pp_lang');if(sv&&sv!=='en'){sel.value=sv;want=sv}}catch(e){}
+})();
+</script>
+<script>
+(function(){
+var sel=document.getElementById('ai-model'),panel=document.getElementById('ai-panel');if(!sel||!panel)return;
+var P={__claude:{n:'Claude (your key)',ph:'Paste your Anthropic API key (sk-ant-…)',host:'api.anthropic.com',k:'pp_key_claude'},
+       __gemini:{n:'Gemini (your key)',ph:'Paste your Google Gemini API key',host:'generativelanguage.googleapis.com',k:'pp_key_gemini',m:'gemini-3.8-flash'},
+       __grok:{n:'Grok (your key)',ph:'Paste your xAI API key (xai-…)',host:'api.x.ai',k:'pp_key_grok',m:'grok-4'},
+       __openai:{n:'OpenAI (your key)',ph:'Paste your OpenAI API key (sk-…)',host:'api.openai.com',k:'pp_key_openai',m:'gpt-4o'}};
+var OAI={__grok:'https://api.x.ai/v1/chat/completions',__openai:'https://api.openai.com/v1/chat/completions'};
+function add(){if(!sel.options.length)return;Object.keys(P).forEach(function(id){if(!sel.querySelector('option[value="'+id+'"]')){var o=document.createElement('option');o.value=id;o.textContent=P[id].n;sel.appendChild(o)}})}
+new MutationObserver(add).observe(sel,{childList:true});add();
+var row=document.createElement('div');row.hidden=true;row.style.cssText='display:grid;gap:6px';
+var st='padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit';
+row.innerHTML='<input id="nl-key" type="password" autocomplete="off" spellcheck="false" style="'+st+'"><input id="nl-mod" spellcheck="false" value="" aria-label="Model name" style="'+st+'" hidden><label class="check"><input type="checkbox" id="nl-rem"> Remember my key in this browser</label><small id="nl-note" style="color:var(--muted)"></small>';
+document.getElementById('ai-msg').before(row);
+var key=document.getElementById('nl-key'),rem=document.getElementById('nl-rem'),mod=document.getElementById('nl-mod');
+function tog(){var p=P[sel.value];row.hidden=!p;if(!p)return;key.placeholder=p.ph;mod.hidden=!p.m;mod.value=p.m||'';mod.placeholder='Model name';
+  try{var sv=localStorage.getItem(p.k);key.value=sv||'';rem.checked=!!sv}catch(e){key.value=''}
+  document.getElementById('nl-note').textContent='Your key goes only to '+p.host+'. Generation uses your own account credits.'}
+sel.addEventListener('change',tog);new MutationObserver(tog).observe(sel,{childList:true});
+var SYS='You are an expert web developer. Build exactly the website or web app the user describes, following their instructions closely (topic, name, sections, colors, features, language). Output ONE complete self-contained HTML file with inline CSS and JavaScript, no external dependencies or images (use CSS, emoji or inline SVG instead). Make it responsive, accessible and polished, with working interactivity where requested. Reply with only the HTML, starting with <!DOCTYPE html>, no explanations and no code fences.';
+async function call(id,k,d,sys,mt){
+  if(id==='__claude'){
+    var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-5-5',max_tokens:mt||12000,system:sys||SYS,messages:[{role:'user',content:d}]})});
+    var j=await r.json().catch(function(){return{}});if(!r.ok)throw new Error((j.error&&j.error.message)||('Request failed ('+r.status+')'));
+    return(j.content||[]).map(function(c){return c.text||''}).join('')}
+  if(OAI[id]){
+    var r3=await fetch(OAI[id],{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+k},body:JSON.stringify({model:mod.value.trim()||P[id].m,messages:[{role:'system',content:sys||SYS},{role:'user',content:d}]})});
+    var j3=await r3.json().catch(function(){return{}});if(!r3.ok)throw new Error((j3.error&&(j3.error.message||j3.error))||j3.code||('Request failed ('+r3.status+')'));
+    return(((j3.choices||[])[0]||{}).message||{}).content||''}
+  var m=(mod.value.trim()||'gemini-3.8-flash').replace(/^models\//,'');
+  var r2=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(m)+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':k},body:JSON.stringify({systemInstruction:{parts:[{text:sys||SYS}]},contents:[{role:'user',parts:[{text:d}]}],generationConfig:{maxOutputTokens:mt||16000}})});
+  var j2=await r2.json().catch(function(){return{}});if(!r2.ok)throw new Error((j2.error&&j2.error.message)||('Request failed ('+r2.status+')'));
+  var c=(j2.candidates||[])[0];return((c&&c.content&&c.content.parts)||[]).map(function(x){return x.text||''}).join('')}
+window.ppAI={call:call,P:P,sel:sel,key:function(){return key.value.trim()},remember:function(id,k){try{if(rem.checked)localStorage.setItem(P[id].k,k);else localStorage.removeItem(P[id].k)}catch(er){}}};
+panel.addEventListener('click',async function(e){
+  var b=e.target.closest&&e.target.closest('#ai-go'),id=sel.value;if(!b||!P[id])return;
+  e.stopImmediatePropagation();e.preventDefault();
+  var d=document.getElementById('ai-prompt').value.trim(),m=document.getElementById('ai-msg'),k=key.value.trim();
+  m.style.color='var(--warn)';
+  if(!d){m.textContent='Describe your website first.';return}
+  if(!k){m.textContent='Paste your API key first.';return}
+  try{if(rem.checked)localStorage.setItem(P[id].k,k);else localStorage.removeItem(P[id].k)}catch(er){}
+  b.disabled=true;b.textContent='Generating…';m.style.color='var(--muted)';m.textContent='Building your site. This can take up to a minute.';
+  try{
+    var h=(await call(id,k,d)).trim().replace(/^```(?:html)?\s*/i,'').replace(/```\s*$/,'');
+    if(!/<html|<!doctype/i.test(h))throw new Error('The AI did not return a web page. Try again with more detail.');
+    var l=document.getElementById('lang'),code=document.getElementById('code');
+    l.value='html';if(l.onchange)l.onchange.call(l);code.value=h;code.dispatchEvent(new Event('input',{bubbles:true}));
+    m.style.color='var(--live)';m.textContent='Done! Preview is below. Edit it, debug it, or publish it.';
+    var pv=document.getElementById('preview');if(pv)pv.scrollIntoView({behavior:'smooth',block:'center'});
+  }catch(er){m.style.color='var(--warn)';m.textContent=/Failed to fetch|NetworkError/i.test(er.message)?'Could not reach '+P[id].host+'. Open the downloaded file in your browser (this page blocks outside connections).':er.message}
+  finally{b.disabled=false;b.textContent='Generate'}
+},true);
+})();
+</script>
+<script>
+/* ---------- 🤖 Fix with AI ---------- */
+(function(){
+var $=function(i){return document.getElementById(i)},code=$('code');
+var SB_URL='https://bcogtxeqeopvsyrejsdj.supabase.co',SB_KEY='sb_publishable_bPdSIexAYb7pHD0ALc_3wA_vj8XAWqH';
+var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+var css=document.createElement('style');
+css.textContent='.aif{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:12px 14px;margin:10px 0;display:grid;gap:10px}'+
+'.aif-h{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.aif-h b{flex:1;min-width:12em}'+
+'.aif ul{margin:0;padding-left:20px;font-size:.9rem}.aif li{margin:2px 0}'+
+'.aif-diff{background:#0a0e0c;color:#d7e2dc;border-radius:8px;max-height:360px;overflow:auto;font:12.5px/1.5 "IBM Plex Mono",ui-monospace,monospace}'+
+'.aif-diff div{display:grid;grid-template-columns:3.2em 3.2em 1.2em minmax(0,1fr);white-space:pre-wrap;word-break:break-word;padding:0 8px}'+
+'.aif-diff .n{color:#5f6f67;text-align:right;padding-right:8px;user-select:none}.aif-diff .add{background:#12351f;color:#a6f0be}.aif-diff .del{background:#3d1717;color:#ffb3b3}'+
+'.aif-diff .gap{color:#7c8c84;background:#151c19;grid-template-columns:1fr;text-align:center;font-style:italic}'+
+'.aif-stat{font-size:.82rem;color:var(--muted)}.aif-stat .a{color:var(--live);font-weight:600}.aif-stat .d{color:var(--warn);font-weight:600}'+
+'.aif-spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:aifspin .8s linear infinite;vertical-align:-2px;margin-right:6px}@keyframes aifspin{to{transform:rotate(360deg)}}'+
+'@media (prefers-reduced-motion:reduce){.aif-spin{animation:none}}';
+document.head.appendChild(css);
+
+var go=$('d-go'),afix=$('d-fix'),btn=document.createElement('button'),box=document.createElement('div');
+btn.className='btn primary';btn.type='button';btn.id='d-aifix';btn.textContent='🤖 Fix with AI';
+(afix||go).after(btn);
+box.id='aifix';box.className='aif';box.hidden=true;box.setAttribute('aria-live','polite');box.setAttribute('translate','no');box.classList.add('notranslate');
+var anchor=$('fixlog')||$('iss').previousElementSibling;anchor.before(box);
+
+var undoState=null,pending=null;
+function fire(){code.dispatchEvent(new Event('input',{bubbles:true}))}
+function langName(){var l=$('lang');return l.options[l.selectedIndex].text}
+function show(html){box.hidden=false;box.innerHTML=html}
+function say(kind,title,body){show('<div class="aif-h"><b>'+(kind==='err'?'⚠️ ':kind==='ok'?'✅ ':'')+esc(title)+'</b></div>'+(body?'<div class="aif-stat">'+body+'</div>':''))}
+
+/* Collect what the debugger found */
+function findings(){
+  var out=[];
+  document.querySelectorAll('#iss .it.error, #iss .it.warn').forEach(function(it){var t=it.innerText.replace(/^[^\w<“"(]+/,'').replace(/\s*\n\s*/g,' — ').trim();if(t&&!/No hard errors found/.test(t))out.push((it.classList.contains('error')?'ERROR: ':'WARNING: ')+t)});
+  document.querySelectorAll('#dcon .e').forEach(function(d){var t=d.textContent.replace(/^✖\s*/,'').trim();if(t)out.push('CONSOLE ERROR: '+t)});
+  var seen={};return out.filter(function(x){if(seen[x])return false;seen[x]=1;return true}).slice(0,60);
+}
+
+var SYS='You are an expert debugger. The user gives you a program and the problems an automatic checker found. '+
+'Fix every real bug: syntax errors, crashes, runtime errors, wrong element ids, broken logic, unclosed tags or brackets. '+
+'Keep everything else exactly as it is: same language, same structure, design, text, names and features. Do not add features, restyle, reformat or rewrite working code. '+
+'Ignore checker warnings that are only style preferences if fixing them could change behaviour. '+
+'Reply in exactly this format and nothing else:\n<changes>\n- one short plain-English line per fix\n</changes>\n<fixed>\nTHE COMPLETE FIXED FILE\n</fixed>';
+function userMsg(lang,src,f){return 'Language: '+lang+'\n\nProblems found by the checker:\n'+(f.length?f.map(function(x){return'- '+x}).join('\n'):'- (none detected automatically; look for bugs yourself)')+'\n\nCode:\n<code>\n'+src+'\n</code>'}
+
+function parse(raw,original){
+  raw=String(raw||'');
+  var ch=/<changes>([\s\S]*?)<\/changes>/i.exec(raw),fx=/<fixed>\s*\n?([\s\S]*?)\n?\s*<\/fixed>/i.exec(raw),text;
+  if(fx)text=fx[1];else{var fence=/```[\w+-]*\n([\s\S]*?)```/.exec(raw);text=fence?fence[1]:raw.replace(/<changes>[\s\S]*?<\/changes>/i,'')}
+  text=text.replace(/^\s*```[\w+-]*\n/,'').replace(/\n```\s*$/,'');
+  if(/\n$/.test(original)&&!/\n$/.test(text))text+='\n';
+  var list=ch?ch[1].split('\n').map(function(l){return l.replace(/^\s*[-*•]\s*/,'').trim()}).filter(Boolean):[];
+  return{text:text,changes:list};
+}
+
+/* Line diff (LCS) for the review step */
+function diff(a,b){
+  var A=a.split('\n'),B=b.split('\n');
+  if(A.length*B.length>4e6)return null;
+  var n=A.length,m=B.length,dp=new Array(n+1);
+  for(var i=0;i<=n;i++)dp[i]=new Uint32Array(m+1);
+  for(i=n-1;i>=0;i--)for(var j=m-1;j>=0;j--)dp[i][j]=A[i]===B[j]?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);
+  var ops=[];i=0;j=0;
+  while(i<n&&j<m){if(A[i]===B[j]){ops.push({t:' ',a:i+1,b:j+1,s:A[i]});i++;j++}else if(dp[i+1][j]>=dp[i][j+1]){ops.push({t:'-',a:i+1,s:A[i]});i++}else{ops.push({t:'+',b:j+1,s:B[j]});j++}}
+  while(i<n){ops.push({t:'-',a:i+1,s:A[i]});i++}while(j<m){ops.push({t:'+',b:j+1,s:B[j]});j++}
+  return ops;
+}
+function renderDiff(ops){
+  var keep=new Array(ops.length),C=2;
+  ops.forEach(function(o,i){if(o.t!==' ')for(var k=Math.max(0,i-C);k<=Math.min(ops.length-1,i+C);k++)keep[k]=1});
+  var h='',skipped=0;
+  ops.forEach(function(o,i){
+    if(!keep[i]){skipped++;return}
+    if(skipped){h+='<div class="gap">⋯ '+skipped+' unchanged line'+(skipped>1?'s':'')+' ⋯</div>';skipped=0}
+    h+='<div class="'+(o.t==='+'?'add':o.t==='-'?'del':'')+'"><span class="n">'+(o.a||'')+'</span><span class="n">'+(o.b||'')+'</span><span>'+(o.t===' '?'':o.t)+'</span><span>'+esc(o.s)+'</span></div>'});
+  if(skipped)h+='<div class="gap">⋯ '+skipped+' unchanged line'+(skipped>1?'s':'')+' ⋯</div>';
+  return h;
+}
+
+/* Which AI to use: the one picked in "Build with AI" */
+function provider(){
+  var sel=$('ai-model'),ai=window.ppAI,id=sel&&sel.value;
+  var loggedIn=false;try{loggedIn=!!JSON.parse(localStorage.getItem('launchpad-session')||'null')}catch(e){}
+  if(!loggedIn||!id)return{err:'Log in (top right) and choose an AI in the “Build with AI” panel first. You can use your account credits or your own API key.'};
+  if(ai&&ai.P[id]){var k=ai.key();if(!k)return{err:'Paste your '+ai.P[id].n.replace(' (your key)','')+' API key in the “Build with AI” panel first.',focus:'nl-key'};return{own:true,id:id,key:k,name:ai.P[id].n}}
+  return{own:false,id:id,name:sel.options[sel.selectedIndex].text};
+}
+async function viaAccount(model,lang,src,f){
+  var ses=JSON.parse(localStorage.getItem('launchpad-session')||'null');
+  var res=await fetch(SB_URL+'/functions/v1/genimi-generate',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+ses.access_token,'Content-Type':'application/json'},
+    body:JSON.stringify({action:'fix',model:model,lang:lang,code:src,problems:f,system:SYS,prompt:userMsg(lang,src,f)})});
+  var d=await res.json().catch(function(){return{}});
+  if(res.status===401)throw new Error('Your session expired. Log out and log in again.');
+  if(!res.ok)throw new Error(d.error||('The AI server returned an error ('+res.status+').'));
+  var raw=d.fixed||d.code||d.text||d.html||'';
+  if(!raw)throw new Error('The AI server did not send back any code.');
+  return raw;
+}
+
+function waitForScan(lang){
+  return new Promise(function(done){
+    window.__dmOutAt=0;go.click();
+    var rem=!/^(html|javascript|markdown|json)$/.test(lang),mx={python:30000,typescript:10000,lua:10000}[lang]||20000,t0=Date.now();
+    (function w(){if(rem&&!window.__dmOutAt&&Date.now()-t0<mx){setTimeout(w,300);return}setTimeout(done,rem?1000:1400)})();
+  });
+}
+
+btn.onclick=async function(){
+  var src=code.value;
+  if(!src.trim()){say('err','Nothing to fix yet','Add some code first.');return}
+  var p=provider();
+  if(p.err){say('err','AI isn’t set up yet',esc(p.err));var a=$(p.focus||'ai-panel');if(a){a.scrollIntoView({behavior:'smooth',block:'center'});if(a.focus)a.focus()}return}
+  var lang=$('lang').value,ln=langName();
+  btn.disabled=true;btn.textContent='🤖 Fixing…';
+  show('<div class="aif-h"><span><span class="aif-spin"></span>Scanning for bugs…</span></div>');
+  try{
+    await waitForScan(lang);
+    var f=findings();
+    show('<div class="aif-h"><span><span class="aif-spin"></span>Asking '+esc(p.name)+' to fix '+f.length+' problem'+(f.length===1?'':'s')+'… This can take up to a minute.</span></div>');
+    var raw;
+    if(p.own){window.ppAI.remember(p.id,p.key);raw=await window.ppAI.call(p.id,p.key,userMsg(ln,src,f),SYS,32000)}
+    else raw=await viaAccount(p.id,lang,src,f);
+    var r=parse(raw,src);
+    if(!r.text.trim())throw new Error('The AI sent back an empty answer. Try again.');
+    if(lang!=='html'&&/^\s*<!doctype html|^\s*<html/i.test(r.text)&&!/^\s*<!doctype html|^\s*<html/i.test(src))throw new Error('The AI returned a web page instead of fixed '+ln+' code. Choose a different AI model and try again.');
+    if(r.text.length<src.length*0.4&&src.length>400)throw new Error('The AI’s answer was much shorter than your code, so it may have been cut off. Try again, or pick a model with a bigger output limit.');
+    if(r.text===src){say('ok','The AI didn’t change anything',r.changes.length?esc(r.changes.join(' · ')):'It found nothing to fix. Remaining issues may be logic bugs. Check the report below.');return}
+    pending={text:r.text,lang:lang,before:src};
+    var ops=diff(src,r.text),adds=0,dels=0;if(ops)ops.forEach(function(o){if(o.t==='+')adds++;else if(o.t==='-')dels++});
+    show('<div class="aif-h"><b>🤖 '+esc(p.name)+' suggests '+(r.changes.length||'these')+' fix'+(r.changes.length===1?'':'es')+'</b>'+
+      '<button class="btn primary" type="button" data-aif="accept">✅ Apply fix</button><button class="btn" type="button" data-aif="reject">✖ Discard</button></div>'+
+      (r.changes.length?'<ul>'+r.changes.map(function(c){return'<li>'+esc(c)+'</li>'}).join('')+'</ul>':'')+
+      (ops?'<div class="aif-stat"><span class="a">+'+adds+'</span> added · <span class="d">−'+dels+'</span> removed · review the changes before applying</div><div class="aif-diff">'+renderDiff(ops)+'</div>':'<div class="aif-stat">The file is too large to show a line-by-line comparison.</div>'));
+  }catch(e){
+    var m=e&&e.message||String(e);
+    if(/Failed to fetch|NetworkError|Load failed/i.test(m))m='Could not reach the AI service. Check your connection, or open the downloaded file directly in your browser (some pages block outside connections).';
+    say('err','AI fix didn’t work',esc(m));
+  }finally{btn.disabled=false;btn.textContent='🤖 Fix with AI'}
+};
+
+box.addEventListener('click',function(e){
+  var b=e.target.closest('[data-aif]');if(!b)return;var a=b.getAttribute('data-aif');
+  if(a==='accept'&&pending){
+    undoState={text:pending.before,lang:pending.lang};
+    if($('lang').value!==pending.lang)$('lang').value=pending.lang;
+    code.value=pending.text;fire();pending=null;
+    show('<div class="aif-h"><b>✅ AI fix applied</b><button class="btn" type="button" data-aif="undo">↩ Undo AI fix</button></div><div class="aif-stat">Re-scanning your code… check the report below.</div>');
+    setTimeout(function(){go.click()},400);
+  }
+  if(a==='reject'){pending=null;say('','Fix discarded','Your code is unchanged.')}
+  if(a==='undo'&&undoState){$('lang').value=undoState.lang;code.value=undoState.text;fire();undoState=null;say('ok','AI fix undone','Your original code is back.');setTimeout(function(){go.click()},400)}
+});
+})();
+</script>
+<script>
+/* ---------- 💬 Chat with AI: back-to-back requests that keep editing the same site ---------- */
+(function(){
+var $=function(i){return document.getElementById(i)};
+var form=$('ai-form'),ta=$('ai-prompt'),msg=$('ai-msg'),btn=$('ai-go'),sel=$('ai-model'),code=$('code');
+if(!form||!ta||!btn)return;
+var SB_URL='https://bcogtxeqeopvsyrejsdj.supabase.co',SB_KEY='sb_publishable_bPdSIexAYb7pHD0ALc_3wA_vj8XAWqH';
+var css=document.createElement('style');
+css.textContent='.aic{display:grid;gap:6px;max-height:280px;overflow:auto;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}'+
+'.aic-m{max-width:85%;padding:7px 11px;border-radius:12px;font-size:.88rem;white-space:pre-wrap;word-break:break-word}'+
+'.aic-m.me{justify-self:end;background:var(--accent);color:var(--accent-ink);border-bottom-right-radius:4px}'+
+'.aic-m.ai{justify-self:start;background:var(--surface-2);border-bottom-left-radius:4px}'+
+'.aic-m.err{background:var(--warn-soft);color:var(--warn)}';
+document.head.appendChild(css);
+var log=document.createElement('div');log.id='ai-chat';log.className='aic';log.setAttribute('aria-live','polite');log.setAttribute('translate','no');log.classList.add('notranslate');
+form.insertBefore(log,ta);
+var nb=document.createElement('button');nb.className='btn';nb.type='button';nb.id='ai-new';nb.textContent='New chat';btn.after(nb);
+var H=[];try{H=JSON.parse(localStorage.getItem('pp_chat')||'[]')}catch(e){H=[]}
+function save(){try{localStorage.setItem('pp_chat',JSON.stringify(H.slice(-40)))}catch(e){}}
+function esc(s){return String(s).replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+function started(){return H.some(function(m){return m.ok})}
+function render(){
+  log.hidden=!H.length;nb.hidden=!H.length;
+  log.innerHTML=H.map(function(m){return'<div class="aic-m '+m.r+(m.err?' err':'')+'">'+esc(m.t)+'</div>'}).join('');
+  log.scrollTop=log.scrollHeight;
+  ta.placeholder=started()?'Ask for a change, e.g. make the header dark blue and add a pricing section (Enter to send)':'Describe your website, e.g. a landing page for my dog-walking business with a contact form';
+  if(!btn.disabled)btn.textContent=started()?'Send':'Generate';
+}
+function clean(h){h=String(h||'').trim().replace(/^```(?:html)?\s*/i,'').replace(/```\s*$/,'');var i=h.search(/<!doctype|<html/i);return i>0?h.slice(i):h}
+function build(req){
+  if(!started()||$('lang').value!=='html'||!/<html|<!doctype/i.test(code.value))return req;
+  var past=H.filter(function(m){return m.r==='me'}).slice(-8).map(function(m){return'- '+m.t}).join('\n');
+  return 'We are editing a website together, one request at a time.\n\nEarlier requests (already done):\n'+(past||'- (none)')+
+    '\n\nThis is the CURRENT website. It may include manual edits by the user, so keep them:\n<current_site>\n'+code.value+'\n</current_site>\n\n'+
+    'New request: '+req+'\n\nApply this request and keep everything else the same. Reply with only the complete updated HTML file, starting with <!DOCTYPE html>.';
+}
+async function viaAccount(model,prompt){
+  var ses=null;try{ses=JSON.parse(localStorage.getItem('launchpad-session')||'null')}catch(e){}
+  if(!ses)throw new Error('Log in first (top right).');
+  var res=await fetch(SB_URL+'/functions/v1/genimi-generate',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+ses.access_token,'Content-Type':'application/json'},body:JSON.stringify({model:model,prompt:prompt})});
+  var d=await res.json().catch(function(){return{}});
+  if(res.status===401)throw new Error('Your session expired. Log out and log in again.');
+  if(!res.ok)throw new Error(d.error||('The AI server returned an error ('+res.status+').'));
+  return d.html||d.text||d.code||'';
+}
+async function send(){
+  if(btn.disabled)return;
+  var req=ta.value.trim(),id=sel.value,ai=window.ppAI,own=!!(ai&&ai.P[id]);
+  msg.style.color='var(--warn)';
+  if(!req){msg.textContent=started()?'Type what you want changed.':'Describe the website first.';return}
+  if(!id){msg.textContent='Choose an AI first.';return}
+  var key=own?ai.key():'';if(own&&!key){msg.textContent='Paste your API key first.';return}
+  var first=!started(),prompt=build(req)+(window.ppDbHint?window.ppDbHint():'');
+  H.push({r:'me',t:req});ta.value='';render();save();
+  btn.disabled=true;btn.textContent='Working…';msg.style.color='var(--muted)';msg.textContent=first?'Building your site. This can take up to a minute.':'Updating your site…';
+  try{
+    var h=clean(own?(ai.remember(id,key),await ai.call(id,key,prompt,null,32000)):await viaAccount(id,prompt));
+    if(!/<html|<!doctype/i.test(h))throw new Error('The AI did not send back a web page. Try rewording your request.');
+    if(window.ppDbEnsure)h=window.ppDbEnsure(h);
+    var l=$('lang');if(l.value!=='html'){l.value='html';if(l.onchange)l.onchange.call(l)}
+    code.value=h;code.dispatchEvent(new Event('input',{bubbles:true}));
+    H.push({r:'ai',t:first?'Built your site. Ask for another change any time.':'Done. The preview is updated.',ok:true});
+    msg.textContent='';
+  }catch(e){
+    var m=e&&e.message||String(e);
+    if(/Failed to fetch|NetworkError|Load failed/i.test(m))m='Could not reach the AI service. Check your connection and try again.';
+    H.push({r:'ai',t:m,err:true});msg.textContent='';
+  }finally{btn.disabled=false;render();save();ta.focus()}
+}
+document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#ai-go')){e.stopImmediatePropagation();e.preventDefault();send()}},true);
+ta.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();send()}});
+nb.onclick=function(){H=[];save();render();msg.textContent='';ta.focus()};
+render();
+})();
+</script>
+<script>
+/* ---------- 🗄️ Backend & database (hosted on Publisher Pad's Supabase) ---------- */
+(function(){
+var $=function(i){return document.getElementById(i)};
+var SB_URL='https://bcogtxeqeopvsyrejsdj.supabase.co',SB_KEY='sb_publishable_bPdSIexAYb7pHD0ALc_3wA_vj8XAWqH';
+var code=$('code');
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+var css=document.createElement('style');
+css.textContent='.dbp{display:grid;gap:12px;padding:14px}.dbp-muted{font-size:.9rem;color:var(--muted)}'+
+'.dbp-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}'+
+'.dbp-row select,.dbp-row input[type=text],.dbp-row input:not([type]){padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;min-width:0}'+
+'.dbp-row select{flex:1 1 180px}.dbp-row #db-name{flex:1 1 180px}'+
+'.dbp-use{font-size:.85rem;color:var(--muted)}.dbp-use .prog{margin:6px 0 0}'+
+'.dbp-cols{display:flex;gap:6px;flex-wrap:wrap}.dbp-cols button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:.85rem}'+
+'.dbp-cols button[aria-pressed=true]{border-color:var(--accent);background:var(--live-soft)}'+
+'.dbp-rows{border:1px solid var(--line);border-radius:8px;overflow:hidden}'+
+'.dbp-r{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:start;padding:8px 10px;border-top:1px solid var(--line);font-size:.82rem}.dbp-r:first-child{border-top:0}'+
+'.dbp-r code{font-family:"IBM Plex Mono",monospace;white-space:pre-wrap;word-break:break-word}.dbp-r small{display:block;color:var(--muted)}'+
+'.dbp-r button{border:1px solid var(--line);background:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.8rem}'+
+'.dbp-msg{font-size:.85rem;min-height:1.2em}.dbp-msg.err{color:var(--warn)}.dbp-msg.ok{color:var(--live)}'+
+'.dbp-help summary{cursor:pointer;color:var(--muted);font-size:.9rem}.dbp-help pre{background:#0a0e0c;color:#d7e2dc;border-radius:8px;padding:10px;overflow-x:auto;font:12.5px/1.5 "IBM Plex Mono",monospace;margin:8px 0 0}';
+document.head.appendChild(css);
+
+var panel=document.createElement('section');panel.className='panel';panel.id='db-panel';panel.style.cssText='margin-bottom:16px;min-height:0';
+panel.innerHTML='<div class="panel-head"><span class="step">🗄️ Backend &amp; database</span><span class="count" id="db-allow"></span></div>'+
+'<div class="dbp">'+
+ '<div id="db-locked" class="dbp-muted">Log in to create a database your sites can save to and read from: sign-ups, comments, orders, scores and more.</div>'+
+ '<div id="db-main" hidden style="display:grid;gap:12px">'+
+  '<div class="dbp-row"><select id="db-sel" aria-label="Your databases"></select><input id="db-name" maxlength="60" placeholder="New database name" aria-label="New database name"><button class="btn" id="db-create" type="button">Create database</button></div>'+
+  '<div id="db-detail" hidden style="display:grid;gap:12px">'+
+   '<div class="dbp-row"><label class="check"><input type="checkbox" id="db-read"> Visitors can read records</label><label class="check"><input type="checkbox" id="db-insert"> Visitors can add records</label></div>'+
+   '<div class="dbp-use"><span id="db-count"></span><div class="prog"><i id="db-bar" style="width:0"></i></div></div>'+
+   '<div class="dbp-row"><button class="btn primary" id="db-connect" type="button">Connect to my code</button><button class="btn" id="db-copy" type="button">Copy connector</button><button class="btn" id="db-refresh" type="button">Refresh</button><button class="btn" id="db-del" type="button">Delete database</button></div>'+
+   '<label class="check"><input type="checkbox" id="db-ai"> Let the AI chat build with this database</label>'+
+   '<div id="db-cols" class="dbp-cols"></div><div id="db-rows"></div>'+
+  '</div>'+
+ '</div>'+
+ '<div id="db-msg" class="dbp-msg" aria-live="polite"></div>'+
+ '<details class="dbp-help"><summary>How to use the database in your code</summary><pre translate="no">// "Connect to my code" adds window.ppdb to your page.\n\n// Read the newest 20 records from a collection\nconst msgs = await ppdb.list("messages", { limit: 20 });\n// each item: { id, created_at, ...your fields }\n\n// Save a record (needs "Visitors can add records")\nawait ppdb.add("messages", { name: "Sam", text: "Hi!" });\n\n// Collection names: lowercase letters, numbers, _ and -\n// Visitors can\'t edit or delete records. You can, from this panel.</pre></details>'+
+'</div>';
+($('ai-panel')||document.querySelector('.work')).after(panel);
+
+var allow={projects:3,records:5000,record_kb:32},projects=[],cols=[],cur=null,col=null,busy=false;
+try{cur=localStorage.getItem('pp_db_cur');$('db-ai').checked=localStorage.getItem('pp_db_ai')==='1'}catch(e){}
+function ses(){try{return JSON.parse(localStorage.getItem('launchpad-session')||'null')}catch(e){return null}}
+function say(t,k){var m=$('db-msg');m.className='dbp-msg'+(k?' '+k:'');m.textContent=t||''}
+function project(){return projects.filter(function(p){return p.id===cur})[0]||null}
+
+async function api(path,o){
+  o=o||{};var s=ses();if(!s)throw new Error('Log in first (top right).');
+  var h={apikey:SB_KEY,Authorization:'Bearer '+s.access_token,'Content-Type':'application/json'};if(o.prefer)h.Prefer=o.prefer;
+  var r;try{r=await fetch(SB_URL+'/rest/v1/'+path,{method:o.method||'GET',headers:h,body:o.body?JSON.stringify(o.body):undefined})}
+  catch(e){throw new Error('Could not reach the database. Check your connection and try again.')}
+  var t=await r.text(),d=null;try{d=t?JSON.parse(t):null}catch(e){}
+  if(r.status===401)throw new Error('Your session expired. Log out and log in again.');
+  if(!r.ok){var m=(d&&(d.message||d.hint))||'';if(/Could not find|does not exist|schema cache/i.test(m))throw new Error('The database service is not set up yet. Please try again later.');throw new Error(m||('Database error '+r.status))}
+  return d;
+}
+
+/* ---------- connector that goes into the user's site ---------- */
+function connector(pid){
+  return '<script id="ppdb-connector">\n'+
+  '/* Publisher Pad database. Use ppdb.list(collection) and ppdb.add(collection, data). */\n'+
+  'window.ppdb = (() => {\n'+
+  '  const URL = '+JSON.stringify(SB_URL)+', KEY = '+JSON.stringify(SB_KEY)+', DB = '+JSON.stringify(pid)+';\n'+
+  '  const ok = (c) => { if (!/^[a-z0-9_-]{1,40}$/.test(c)) throw new Error("Bad collection name: " + c); return c; };\n'+
+  '  async function req(path, opt) {\n'+
+  '    const res = await fetch(URL + "/rest/v1/" + path, Object.assign({ headers: { apikey: KEY, "Content-Type": "application/json", Prefer: "return=minimal" } }, opt));\n'+
+  '    const text = await res.text();\n'+
+  '    let data = null; try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }\n'+
+  '    if (!res.ok) throw new Error((data && (data.message || data.hint)) || ("Database error " + res.status));\n'+
+  '    return data;\n'+
+  '  }\n'+
+  '  return {\n'+
+  '    async list(collection, opts) {\n'+
+  '      const o = opts || {};\n'+
+  '      const rows = await req("pp_records?select=id,data,created_at&project_id=eq." + DB + "&collection=eq." + ok(collection) +\n'+
+  '        "&order=created_at." + (o.oldestFirst ? "asc" : "desc") + "&limit=" + Math.min(Math.max(o.limit || 100, 1), 1000));\n'+
+  '      return (rows || []).map((r) => Object.assign({}, r.data, { id: r.id, created_at: r.created_at }));\n'+
+  '    },\n'+
+  '    async add(collection, data) {\n'+
+  '      const body = (data && typeof data === "object" && !Array.isArray(data)) ? data : { value: data };\n'+
+  '      await req("pp_records", { method: "POST", body: JSON.stringify({ project_id: DB, collection: ok(collection), data: body }) });\n'+
+  '      return true;\n'+
+  '    }\n'+
+  '  };\n'+
+  '})();\n'+
+  '<\/script>';
+}
+var CONN_RE=/<script id="ppdb-connector">[\s\S]*?<\/script>\s*/gi;
+function ensure(html,pid){
+  html=String(html).replace(CONN_RE,'');var c=connector(pid)+'\n',m=/<head[^>]*>/i.exec(html);
+  if(m)return html.slice(0,m.index+m[0].length)+'\n'+c+html.slice(m.index+m[0].length);
+  m=/<html[^>]*>/i.exec(html)||/<!doctype[^>]*>/i.exec(html);
+  return m?html.slice(0,m.index+m[0].length)+'\n'+c+html.slice(m.index+m[0].length):c+html;
+}
+
+/* ---------- dashboard ---------- */
+function renderSel(){
+  var s=$('db-sel');
+  s.innerHTML=projects.length?projects.map(function(p){return'<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>'}).join(''):'<option value="">No databases yet</option>';
+  s.disabled=!projects.length;if(cur)s.value=cur;
+  var full=projects.length>=allow.projects;
+  $('db-create').disabled=full;$('db-name').disabled=full;$('db-name').placeholder=full?'Database limit reached':'New database name';
+  $('db-allow').textContent=projects.length+' / '+allow.projects+' databases · '+Number(allow.records).toLocaleString()+' records each · '+allow.record_kb+' KB per record';
+}
+async function detail(){
+  var p=project();$('db-detail').hidden=!p;
+  try{if(p)localStorage.setItem('pp_db_cur',p.id);else localStorage.removeItem('pp_db_cur')}catch(e){}
+  if(!p)return;
+  $('db-read').checked=!!p.public_read;$('db-insert').checked=!!p.public_insert;
+  cols=(await api('rpc/pp_collections',{method:'POST',body:{pid:p.id}}))||[];
+  var total=cols.reduce(function(a,c){return a+Number(c.n)},0);
+  $('db-count').textContent=total.toLocaleString()+' / '+Number(allow.records).toLocaleString()+' records used';
+  $('db-bar').style.width=Math.min(100,total/allow.records*100)+'%';
+  if(col&&!cols.some(function(c){return c.collection===col}))col=null;
+  $('db-cols').innerHTML=cols.length?cols.map(function(c){return'<button type="button" data-col="'+esc(c.collection)+'" aria-pressed="'+(c.collection===col)+'">'+esc(c.collection)+' · '+c.n+'</button>'}).join(''):'<span class="dbp-muted">No records yet. Records your site saves will show up here.</span>';
+  await rows();
+}
+async function rows(){
+  var box=$('db-rows');if(!col){box.innerHTML='';return}
+  var r=(await api('pp_records?select=id,data,created_at&project_id=eq.'+cur+'&collection=eq.'+encodeURIComponent(col)+'&order=created_at.desc&limit=50'))||[];
+  box.innerHTML='<div class="dbp-rows">'+(r.length?r.map(function(x){var j=JSON.stringify(x.data);if(j.length>400)j=j.slice(0,400)+'…';
+    return'<div class="dbp-r"><div><code>'+esc(j)+'</code><small>#'+x.id+' · '+esc(new Date(x.created_at).toLocaleString())+'</small></div><button type="button" data-delrow="'+x.id+'">Delete</button></div>'}).join(''):'<div class="dbp-r"><span class="dbp-muted">Empty.</span></div>')+'</div>'+
+    (r.length===50?'<div class="dbp-muted" style="margin-top:6px">Showing the newest 50.</div>':'');
+}
+async function load(){
+  if(!ses())return auth();
+  try{
+    var a=await api('rpc/pp_allowance',{method:'POST',body:{}});if(a&&a.projects)allow=a;
+    projects=(await api('pp_projects?select=id,name,public_read,public_insert,created_at&order=created_at.asc'))||[];
+    if(!projects.some(function(p){return p.id===cur}))cur=projects[0]?projects[0].id:null;
+    renderSel();await detail();
+  }catch(e){say(e.message,'err')}
+}
+async function act(fn){if(busy)return;busy=true;say('');try{await fn()}catch(e){say(e.message,'err')}finally{busy=false}}
+var lastTok=null;
+function auth(){var s=ses(),tok=s&&s.access_token;if(tok===lastTok)return;lastTok=tok;
+  $('db-locked').hidden=!!s;$('db-main').hidden=!s;if(!s){$('db-allow').textContent='';say('');return}load()}
+
+$('db-sel').onchange=function(){cur=this.value;col=null;act(detail)};
+$('db-create').onclick=function(){act(async function(){
+  var n=$('db-name').value.trim();if(!n)throw new Error('Give the database a name first.');
+  var d=await api('pp_projects',{method:'POST',prefer:'return=representation',body:{name:n,public_read:true,public_insert:false}});
+  $('db-name').value='';cur=d&&d[0]&&d[0].id;await load();say('Created “'+n+'”. Click “Connect to my code” to use it.','ok')})};
+$('db-name').onkeydown=function(e){if(e.key==='Enter')$('db-create').click()};
+function flag(k,el){act(async function(){var b={};b[k]=el.checked;
+  try{await api('pp_projects?id=eq.'+cur,{method:'PATCH',body:b})}catch(e){el.checked=!el.checked;throw e}
+  project()[k]=el.checked;say('Saved.','ok')})}
+$('db-read').onchange=function(){flag('public_read',this)};
+$('db-insert').onchange=function(){flag('public_insert',this)};
+$('db-refresh').onclick=function(){act(load)};
+$('db-del').onclick=function(){var p=project();if(!p)return;
+  if(!confirm('Delete “'+p.name+'” and all its records? Sites using it will stop working. This cannot be undone.'))return;
+  act(async function(){await api('pp_projects?id=eq.'+p.id,{method:'DELETE'});cur=null;col=null;await load();say('Deleted “'+p.name+'”.','ok')})};
+$('db-cols').onclick=function(e){var b=e.target.closest('[data-col]');if(!b)return;var c=b.getAttribute('data-col');col=col===c?null:c;
+  act(async function(){[].forEach.call($('db-cols').children,function(x){x.setAttribute('aria-pressed',String(x.getAttribute('data-col')===col))});await rows()})};
+$('db-rows').onclick=function(e){var b=e.target.closest('[data-delrow]');if(!b)return;
+  act(async function(){await api('pp_records?id=eq.'+b.getAttribute('data-delrow'),{method:'DELETE'});await detail()})};
+$('db-connect').onclick=function(){var p=project();if(!p)return;
+  if($('lang').value!=='html'){say('Switch the language to HTML first. The connector works in web pages.','err');return}
+  code.value=ensure(code.value,p.id);code.dispatchEvent(new Event('input',{bubbles:true}));
+  say('Connected “'+p.name+'”. Your page can now use ppdb.list() and ppdb.add().','ok')};
+$('db-copy').onclick=function(){var p=project();if(!p)return;var t=connector(p.id),b=this;
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){b.textContent='Copied ✓';setTimeout(function(){b.textContent='Copy connector'},1500)},function(){window.prompt('Copy this into your page <head>:',t)})};
+$('db-ai').onchange=function(){try{localStorage.setItem('pp_db_ai',this.checked?'1':'0')}catch(e){}};
+
+/* ---------- hooks for the AI chat ---------- */
+function aiOn(){return $('db-ai').checked&&!!project()&&!!ses()}
+window.ppDbHint=function(){
+  if(!aiOn())return'';var p=project();
+  return '\n\nDATABASE: This website has a live database. A script with id "ppdb-connector" that defines window.ppdb is inserted into the page automatically. Do not write or remove it, and do not use any other backend.\n'+
+    'API (async, use try/catch and show friendly loading and error states):\n'+
+    '- await ppdb.list(collection, { limit, oldestFirst }) returns an array of objects, newest first. Each object has id, created_at and the saved fields.\n'+
+    '- await ppdb.add(collection, object) saves one record (max '+allow.record_kb+' KB).\n'+
+    'Collection names use lowercase letters, numbers, _ or -. Records cannot be edited or deleted from the website.\n'+
+    'Current permissions: visitors '+(p.public_read?'CAN':'CANNOT')+' read records; visitors '+(p.public_insert?'CAN':'CANNOT')+' add records. '+
+    (p.public_read?'':'Because visitors cannot read, ppdb.list returns an empty array, so do not rely on it. ')+
+    (p.public_insert?'':'Because visitors cannot add, ppdb.add will fail, so do not build forms that save data. ')+
+    'After saving, refresh any list that shows the data.';
+};
+window.ppDbEnsure=function(h){return aiOn()?ensure(h,cur):h};
+window.ppdbConnector=connector;
+
+new MutationObserver(auth).observe($('account-btn'),{childList:true,characterData:true,subtree:true});
+window.addEventListener('storage',function(e){if(e.key==='launchpad-session')auth()});
+auth();
+})();
+</script>
+<script>
+/* ---------- 👥 Team rooms: chat with other users and share code ---------- */
+(function(){
+var $=function(i){return document.getElementById(i)};
+var SB_URL='https://bcogtxeqeopvsyrejsdj.supabase.co',SB_KEY='sb_publishable_bPdSIexAYb7pHD0ALc_3wA_vj8XAWqH';
+var code=$('code'),baseTitle=document.title;
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+var css=document.createElement('style');
+css.textContent='.tm{display:grid;gap:12px;padding:14px}'+
+'.tm input,.tm textarea,.tm select{padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;min-width:0}'+
+'.tm .dbp-row select,.tm .dbp-row input{flex:1 1 180px}'+
+'.tm-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px}'+
+'.tm-chat{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden;min-height:380px}'+
+'.tm-msgs{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--bg);max-height:440px}'+
+'.tm-m{max-width:82%;align-self:flex-start}.tm-m.me{align-self:flex-end;text-align:right}'+
+'.tm-m .who{font-size:.72rem;color:var(--muted);margin:0 4px 2px}'+
+'.tm-m .txt{display:inline-block;text-align:left;padding:7px 11px;border-radius:12px;background:var(--surface-2);white-space:pre-wrap;word-break:break-word;font-size:.9rem}'+
+'.tm-m.me .txt{background:var(--accent);color:var(--accent-ink)}.tm-m.sys .txt{background:none;color:var(--muted);font-style:italic;padding:0 4px}'+
+'.tm-send{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line);background:var(--surface)}.tm-send textarea{flex:1;resize:none;min-height:0;height:64px;margin:0;font:inherit}.tm-send .btn{align-self:stretch}#ai-prompt{min-height:90px;margin:0}'+
+'.tm-side{display:grid;gap:12px;align-content:start}'+
+'.tm-card{border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:8px}'+
+'.tm-mem{display:flex;align-items:center;gap:8px;font-size:.88rem}.tm-mem span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'+
+'.tm-mem button,.tm-inv button{border:1px solid var(--line);background:none;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:.78rem}'+
+'.tm-role{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}'+
+'.tm-new{display:inline-block;font-size:.72rem;font-weight:600;color:var(--warn);background:var(--warn-soft);padding:2px 8px;border-radius:999px;margin-left:6px}'+
+'.tm-inv{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-radius:10px;background:var(--live-soft);font-size:.9rem}.tm-inv span{flex:1;min-width:12em}'+
+'@media (max-width:880px){.tm-grid{grid-template-columns:1fr}}';
+document.head.appendChild(css);
+
+var panel=document.createElement('section');panel.className='panel';panel.id='tm-panel';panel.style.cssText='margin-bottom:16px;min-height:0';
+panel.innerHTML='<div class="panel-head"><span class="step">👥 Team rooms</span><span class="count" id="tm-allow"></span></div>'+
+'<div class="tm">'+
+ '<div id="tm-locked" class="dbp-muted">Log in to chat with other users and build sites together.</div>'+
+ '<div id="tm-main" hidden style="display:grid;gap:12px">'+
+  '<div id="tm-invites" style="display:grid;gap:8px"></div>'+
+  '<div class="dbp-row"><select id="tm-sel" aria-label="Your rooms"></select><input id="tm-name" maxlength="60" placeholder="New room name" aria-label="New room name"><button class="btn" id="tm-create" type="button">Create room</button></div>'+
+  '<div id="tm-room" hidden class="tm-grid">'+
+   '<div class="tm-chat"><div id="tm-msgs" class="tm-msgs" aria-live="polite" translate="no"></div>'+
+    '<div class="tm-send"><textarea id="tm-text" rows="2" maxlength="2000" placeholder="Message the room (Enter to send, Shift+Enter for a new line)" aria-label="Message"></textarea><button class="btn primary" id="tm-go" type="button">Send</button></div></div>'+
+   '<div class="tm-side">'+
+    '<div class="tm-card"><b>Shared code</b><div id="tm-code-meta" class="dbp-muted"></div>'+
+     '<div class="dbp-row"><button class="btn primary" id="tm-pull" type="button">Load into editor</button><button class="btn" id="tm-push" type="button">Share my code</button></div></div>'+
+    '<div class="tm-card"><b>Members</b><div id="tm-members" style="display:grid;gap:6px"></div>'+
+     '<div class="dbp-row" id="tm-invite-row"><input id="tm-email" type="email" placeholder="Invite by email" aria-label="Invite by email"><button class="btn" id="tm-invite" type="button">Invite</button></div>'+
+     '<div id="tm-pending" class="dbp-muted" style="font-size:.82rem"></div></div>'+
+    '<div class="dbp-row"><button class="btn" id="tm-leave" type="button">Leave room</button></div>'+
+   '</div>'+
+  '</div>'+
+ '</div>'+
+ '<div id="tm-msg" class="dbp-msg" aria-live="polite"></div>'+
+'</div>';
+($('db-panel')||$('ai-panel')||document.querySelector('.work')).after(panel);
+
+var allow={rooms:5,members:10,message_chars:2000,messages_per_minute:20,code_kb:512};
+var rooms=[],invites=[],members=[],pending=[],cur=null,room=null,lastId=0,unread=0,tick=0,timer=null,busy=false;
+try{cur=localStorage.getItem('pp_tm_cur')}catch(e){}
+
+function ses(){try{return JSON.parse(localStorage.getItem('launchpad-session')||'null')}catch(e){return null}}
+function myId(){try{var p=ses().access_token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');return JSON.parse(decodeURIComponent(escape(atob(p)))).sub}catch(e){return null}}
+function myEmail(){var s=ses();return String(s&&s.email||'').toLowerCase()}
+function say(t,k){var m=$('tm-msg');m.className='dbp-msg'+(k?' '+k:'');m.textContent=t||''}
+function name(e){return String(e||'someone').split('@')[0]}
+function ago(t){if(!t)return'';var s=(Date.now()-new Date(t))/1000;return s<60?'just now':s<3600?Math.floor(s/60)+' min ago':s<86400?Math.floor(s/3600)+' h ago':new Date(t).toLocaleDateString()}
+function pulled(v){var k='pp_tm_v_'+cur;try{if(v===undefined)return+(localStorage.getItem(k)||0);localStorage.setItem(k,String(v))}catch(e){return 0}}
+function isOwner(){return room&&room.owner===myId()}
+
+async function api(path,o){
+  o=o||{};var s=ses();if(!s)throw new Error('Log in first (top right).');
+  var h={apikey:SB_KEY,Authorization:'Bearer '+s.access_token,'Content-Type':'application/json'};if(o.prefer)h.Prefer=o.prefer;
+  var r;try{r=await fetch(SB_URL+'/rest/v1/'+path,{method:o.method||'GET',headers:h,body:o.body?JSON.stringify(o.body):undefined})}
+  catch(e){throw new Error('Could not reach the server. Check your connection.')}
+  var t=await r.text(),d=null;try{d=t?JSON.parse(t):null}catch(e){}
+  if(r.status===401)throw new Error('Your session expired. Log out and log in again.');
+  if(!r.ok){var m=(d&&(d.message||d.hint))||'';
+    if(/Could not find|does not exist|schema cache/i.test(m))throw new Error('Team rooms are not set up on the server yet. Please try again later.');
+    if(/duplicate key/i.test(m))throw new Error('Already done: that person has been invited.');
+    throw new Error(m||('Server error '+r.status))}
+  return d;
+}
+async function act(fn){if(busy)return;busy=true;say('');try{await fn()}catch(e){say(e.message,'err')}finally{busy=false}}
+
+/* ---------- rooms & invites ---------- */
+function renderRooms(){
+  var s=$('tm-sel');
+  s.innerHTML=rooms.length?rooms.map(function(r){return'<option value="'+esc(r.id)+'">'+esc(r.name)+(r.owner===myId()?'':' (shared with you)')+'</option>'}).join(''):'<option value="">No rooms yet</option>';
+  s.disabled=!rooms.length;if(cur)s.value=cur;
+  var owned=rooms.filter(function(r){return r.owner===myId()}).length,full=owned>=allow.rooms;
+  $('tm-create').disabled=full;$('tm-name').disabled=full;$('tm-name').placeholder=full?'Room limit reached':'New room name';
+  $('tm-allow').textContent=owned+' / '+allow.rooms+' rooms · up to '+allow.members+' people each';
+}
+function renderInvites(){
+  $('tm-invites').innerHTML=invites.map(function(i){return'<div class="tm-inv"><span>📨 <b>'+esc(i.invited_by||'Someone')+'</b> invited you to <b>'+esc(i.room_name)+'</b></span><button type="button" data-join="'+esc(i.room_id)+'">Join</button><button type="button" data-decline="'+esc(i.room_id)+'">Decline</button></div>'}).join('');
+}
+var META='id,name,owner,code_lang,code_version,code_updated_by,code_updated_at';
+async function loadRooms(){
+  var a=await api('rpc/pp_collab_allowance',{method:'POST',body:{}});if(a&&a.rooms)allow=a;
+  invites=(await api('rpc/pp_my_invites',{method:'POST',body:{}}))||[];renderInvites();
+  rooms=(await api('pp_rooms?select='+META+'&order=created_at.asc'))||[];
+  if(!rooms.some(function(r){return r.id===cur}))cur=rooms[0]?rooms[0].id:null;
+  renderRooms();await openRoom();
+}
+async function openRoom(){
+  room=rooms.filter(function(r){return r.id===cur})[0]||null;$('tm-room').hidden=!room;
+  try{if(cur)localStorage.setItem('pp_tm_cur',cur);else localStorage.removeItem('pp_tm_cur')}catch(e){}
+  $('tm-msgs').innerHTML='';lastId=0;
+  if(!room)return;
+  var m=(await api('pp_messages?select=id,user_id,email,body,created_at&room_id=eq.'+cur+'&order=id.desc&limit=100'))||[];
+  addMsgs(m.reverse(),true);
+  if(!m.length)$('tm-msgs').innerHTML='<div class="tm-m sys"><span class="txt">No messages yet. Say hello, or share your code so others can load it.</span></div>';
+  await loadPeople();renderCode();
+}
+async function loadPeople(){
+  if(!room)return;
+  members=(await api('pp_members?select=user_id,email,role,joined_at&room_id=eq.'+cur+'&order=joined_at.asc'))||[];
+  pending=(await api('pp_invites?select=email,created_at&room_id=eq.'+cur+'&order=created_at.asc'))||[];
+  var own=isOwner();
+  $('tm-members').innerHTML=members.map(function(m){var me=m.user_id===myId();
+    return'<div class="tm-mem"><span title="'+esc(m.email)+'">'+esc(m.email)+(me?' (you)':'')+'</span><span class="tm-role" style="flex:none">'+esc(m.role)+'</span>'+
+      (own&&!me?'<button type="button" data-kick="'+esc(m.user_id)+'">Remove</button>':'')+'</div>'}).join('');
+  $('tm-invite-row').hidden=!own;
+  $('tm-pending').innerHTML=pending.length?'Invited, not joined yet: '+pending.map(function(p){return esc(p.email)+(own?' <button type="button" data-uninvite="'+esc(p.email)+'" style="border:0;background:none;color:var(--warn);cursor:pointer">✕</button>':'')}).join(', '):'';
+  $('tm-leave').textContent=own?'Delete room':'Leave room';
+}
+
+/* ---------- chat ---------- */
+function addMsgs(list,initial){
+  var box=$('tm-msgs'),near=box.scrollHeight-box.scrollTop-box.clientHeight<80,me=myId(),others=0;
+  if(list.length&&lastId===0)box.innerHTML='';
+  list.forEach(function(m){if(m.id<=lastId)return;lastId=m.id;var mine=m.user_id===me;if(!mine)others++;
+    var d=document.createElement('div');d.className='tm-m'+(mine?' me':'');
+    d.innerHTML='<div class="who">'+esc(mine?'You':name(m.email))+' · '+esc(ago(m.created_at))+'</div><span class="txt"></span>';
+    d.querySelector('.txt').textContent=m.body;box.appendChild(d)});
+  if(initial||near)box.scrollTop=box.scrollHeight;
+  if(!initial&&others&&document.hidden){unread+=others;document.title='('+unread+') '+baseTitle}
+}
+async function send(){
+  var t=$('tm-text').value.trim();if(!t||!room)return;
+  $('tm-go').disabled=true;
+  try{await api('pp_messages',{method:'POST',prefer:'return=minimal',body:{room_id:cur,body:t}});$('tm-text').value='';await pollMsgs()}
+  catch(e){say(e.message,'err')}finally{$('tm-go').disabled=false;$('tm-text').focus()}
+}
+async function pollMsgs(){
+  if(!room)return;
+  var m=(await api('pp_messages?select=id,user_id,email,body,created_at&room_id=eq.'+cur+'&id=gt.'+lastId+'&order=id.asc&limit=200'))||[];
+  if(m.length){addMsgs(m,false);if(m.some(function(x){return!members.some(function(y){return y.user_id===x.user_id})}))await loadPeople()}
+}
+
+/* ---------- shared code ---------- */
+function langName(l){var o=$('lang').querySelector('option[value="'+l+'"]');return o?o.textContent:l}
+function renderCode(){
+  if(!room)return;var v=room.code_version,mine=pulled();
+  $('tm-code-meta').innerHTML=v?esc(langName(room.code_lang))+' · version '+v+' · shared by '+esc(room.code_updated_by===myEmail()?'you':name(room.code_updated_by))+' '+esc(ago(room.code_updated_at))+
+    (v>mine?'<span class="tm-new">New version, not loaded yet</span>':''):'Nothing shared yet. Click “Share my code” to put your editor’s code here for everyone.';
+  $('tm-pull').disabled=!v;
+}
+async function pollRoom(){
+  if(!room)return;
+  var r=(await api('pp_rooms?select='+META+'&id=eq.'+cur))||[];
+  if(!r[0]){await loadRooms();return}
+  var before=room.code_version;Object.assign(room,r[0]);renderCode();
+  if(room.code_version>before&&room.code_updated_by!==myEmail())sysNote(name(room.code_updated_by)+' shared a new version of the code.');
+}
+function sysNote(t){var d=document.createElement('div');d.className='tm-m sys';d.innerHTML='<span class="txt"></span>';d.querySelector('.txt').textContent=t;var b=$('tm-msgs');b.appendChild(d);b.scrollTop=b.scrollHeight}
+async function pull(){
+  var r=((await api('pp_rooms?select=code,code_lang,code_version&id=eq.'+cur))||[])[0];if(!r||!r.code_version)return;
+  if(code.value.trim()&&code.value!==r.code&&!confirm('Replace the code in your editor with the shared version '+r.code_version+'?'))return;
+  var l=$('lang');if(l.value!==r.code_lang&&l.querySelector('option[value="'+r.code_lang+'"]')){l.value=r.code_lang;if(l.onchange)l.onchange.call(l)}
+  code.value=r.code;code.dispatchEvent(new Event('input',{bubbles:true}));
+  pulled(r.code_version);room.code_version=Math.max(room.code_version,r.code_version);renderCode();say('Loaded version '+r.code_version+' into your editor.','ok');
+}
+async function push(){
+  if(!code.value.trim())throw new Error('Your editor is empty.');
+  if(new Blob([code.value]).size>allow.code_kb*1024)throw new Error('Your code is bigger than the '+allow.code_kb+' KB limit for shared code.');
+  await pollRoom();
+  if(room.code_version>pulled()&&!confirm(name(room.code_updated_by)+' shared version '+room.code_version+' which you have not loaded. Replace it with your code anyway?'))return;
+  var r=await api('pp_rooms?id=eq.'+cur+'&code_version=eq.'+room.code_version+'&select='+META,{method:'PATCH',prefer:'return=representation',body:{code:code.value,code_lang:$('lang').value}});
+  if(!r||!r[0])throw new Error('Someone shared a newer version a moment ago. Load it first, or try again.');
+  Object.assign(room,r[0]);pulled(room.code_version);renderCode();
+  await api('pp_messages',{method:'POST',prefer:'return=minimal',body:{room_id:cur,body:'📦 Shared code version '+room.code_version+' ('+langName(room.code_lang)+')'}}).catch(function(){});
+  await pollMsgs();say('Shared. Everyone in the room can load version '+room.code_version+' now.','ok');
+}
+
+/* ---------- polling ---------- */
+function schedule(){clearTimeout(timer);timer=setTimeout(loop,document.hidden?15000:4000)}
+async function loop(){
+  if(!ses()||busy){schedule();return}
+  try{tick++;await pollMsgs();await pollRoom();
+    if(tick%4===0){await loadPeople();var inv=(await api('rpc/pp_my_invites',{method:'POST',body:{}}))||[];if(inv.length!==invites.length){invites=inv;renderInvites()}}
+  }catch(e){}
+  schedule();
+}
+document.addEventListener('visibilitychange',function(){if(!document.hidden){unread=0;document.title=baseTitle;schedule()}});
+
+/* ---------- login state ---------- */
+var lastTok=null;
+function auth(){var s=ses(),tok=s&&s.access_token;if(tok===lastTok)return;lastTok=tok;
+  $('tm-locked').hidden=!!s;$('tm-main').hidden=!s;clearTimeout(timer);
+  if(!s){$('tm-allow').textContent='';say('');room=null;return}
+  act(loadRooms).then(schedule);
+}
+
+/* ---------- wiring ---------- */
+$('tm-sel').onchange=function(){cur=this.value;act(openRoom)};
+$('tm-create').onclick=function(){act(async function(){
+  var n=$('tm-name').value.trim();if(!n)throw new Error('Give the room a name first.');
+  var d=await api('pp_rooms?select='+META,{method:'POST',prefer:'return=representation',body:{name:n}});
+  $('tm-name').value='';cur=d&&d[0]&&d[0].id;await loadRooms();say('Created “'+n+'”. Invite people by email to start working together.','ok')})};
+$('tm-name').onkeydown=function(e){if(e.key==='Enter')$('tm-create').click()};
+$('tm-go').onclick=send;
+$('tm-text').onkeydown=function(e){if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();send()}};
+$('tm-pull').onclick=function(){act(pull)};
+$('tm-push').onclick=function(){act(push)};
+$('tm-invite').onclick=function(){act(async function(){
+  var e=$('tm-email').value.trim().toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))throw new Error('Enter a valid email address.');
+  if(e===myEmail())throw new Error('You are already in this room.');
+  await api('pp_invites',{method:'POST',prefer:'return=minimal',body:{room_id:cur,email:e}});
+  $('tm-email').value='';await loadPeople();say('Invited '+e+'. They will see the invite here when they log in to Publisher Pad with that email.','ok')})};
+$('tm-email').onkeydown=function(e){if(e.key==='Enter')$('tm-invite').click()};
+$('tm-invites').onclick=function(e){var j=e.target.closest('[data-join]'),d=e.target.closest('[data-decline]');
+  if(j)act(async function(){var id=j.getAttribute('data-join');await api('rpc/pp_accept_invite',{method:'POST',body:{rid:id}});cur=id;await loadRooms();
+    await api('pp_messages',{method:'POST',prefer:'return=minimal',body:{room_id:id,body:'👋 joined the room'}}).catch(function(){});await pollMsgs();say('You joined the room.','ok')});
+  if(d)act(async function(){await api('pp_invites?room_id=eq.'+d.getAttribute('data-decline')+'&email=eq.'+encodeURIComponent(myEmail()),{method:'DELETE'});
+    invites=invites.filter(function(i){return i.room_id!==d.getAttribute('data-decline')});renderInvites()})};
+$('tm-members').onclick=function(e){var k=e.target.closest('[data-kick]');if(!k)return;
+  var m=members.filter(function(x){return x.user_id===k.getAttribute('data-kick')})[0];if(!m||!confirm('Remove '+m.email+' from this room?'))return;
+  act(async function(){await api('pp_members?room_id=eq.'+cur+'&user_id=eq.'+m.user_id,{method:'DELETE'});await loadPeople()})};
+$('tm-pending').onclick=function(e){var u=e.target.closest('[data-uninvite]');if(!u)return;
+  act(async function(){await api('pp_invites?room_id=eq.'+cur+'&email=eq.'+encodeURIComponent(u.getAttribute('data-uninvite')),{method:'DELETE'});await loadPeople()})};
+$('tm-leave').onclick=function(){if(!room)return;var own=isOwner(),n=room.name;
+  if(!confirm(own?'Delete “'+n+'” for everyone, including all messages and shared code?':'Leave “'+n+'”? You will need a new invite to come back.'))return;
+  act(async function(){if(own)await api('pp_rooms?id=eq.'+cur,{method:'DELETE'});else await api('pp_members?room_id=eq.'+cur+'&user_id=eq.'+myId(),{method:'DELETE'});
+    cur=null;await loadRooms();say(own?'Room deleted.':'You left “'+n+'”.','ok')})};
+
+new MutationObserver(auth).observe($('account-btn'),{childList:true,characterData:true,subtree:true});
+window.addEventListener('storage',function(e){if(e.key==='launchpad-session')auth()});
+auth();
+})();
+</script>
+</body>
+</html>
