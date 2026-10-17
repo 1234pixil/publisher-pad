@@ -54,6 +54,27 @@ h2 { font-family: 'Bricolage Grotesque', 'IBM Plex Sans', sans-serif; font-size:
 .drop-icon { flex: none; width: 38px; height: 46px; border: 1.5px solid var(--muted); border-radius: 4px 12px 4px 4px; display: grid; place-items: center; font: 600 0.62rem 'IBM Plex Mono', monospace; color: var(--muted); }
 .drop strong { display: block; }
 .drop small { color: var(--muted); }
+.ws{margin:8px 14px 0;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.ws-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px}
+.ws-head strong{font-size:.82rem;flex:1 1 150px;font-weight:600}
+.ws-tools{display:flex;gap:6px;flex-wrap:wrap}
+.ws-tools .btn{padding:4px 10px;font-size:.8rem}
+.ws-newrow{display:flex;gap:6px;padding:0 10px 8px;flex-wrap:wrap}
+.ws-newrow input{flex:1 1 220px;min-width:0}
+.ws input[type=text],.ws input[type=search]{padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;font-size:.85rem}
+#ws-filter{display:block;width:calc(100% - 20px);margin:0 10px 6px}
+.ws-list{max-height:220px;overflow:auto;border-top:1px solid var(--line)}
+.ws-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:5px 10px;font-size:.82rem;cursor:pointer;border-bottom:1px solid var(--line)}
+.ws-row:hover{background:var(--bg)}
+.ws-row.sel{background:var(--bg);box-shadow:inset 3px 0 0 var(--accent)}
+.ws-row .p{flex:1 1 140px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'IBM Plex Mono',monospace}
+.ws-row .p i{font-style:normal;color:var(--muted)}
+.ws-row .s{color:var(--muted);font-size:.75rem;flex:none}
+.ws-row .tag{font-size:.68rem;border:1px solid var(--line);border-radius:999px;padding:0 6px;color:var(--muted);flex:none}
+.ws-row button{border:0;background:transparent;color:var(--muted);padding:2px 6px;border-radius:6px;font-size:.78rem;cursor:pointer}
+.ws-row button:hover{background:var(--line);color:var(--ink)}
+.ws-row input.ws-ren{flex:1 1 160px;min-width:0}
+.ws-note{padding:6px 10px;font-size:.78rem;color:var(--muted);min-height:1.2em}
 .loaded { margin: 8px 14px 0; font-size: 0.82rem; color: var(--live); min-height: 1.3em; }
 textarea { flex: 1; min-height: 340px; margin: 10px 14px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 12px; resize: vertical; font: 0.8rem/1.6 'IBM Plex Mono', ui-monospace, monospace; }
 
@@ -133,6 +154,19 @@ textarea { flex: 1; min-height: 340px; margin: 10px 14px 14px; border: 1px solid
   .row-actions { justify-content: flex-start; }
 }
 
+.showcase{margin-top:36px}
+.sc-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.sc-bar input{flex:1 1 220px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);min-width:0}
+.sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.sc-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:8px;align-content:start;min-width:0}
+.sc-card h3{margin:0;font-family:'Bricolage Grotesque','IBM Plex Sans',sans-serif;font-size:1.05rem;overflow-wrap:anywhere}
+.sc-card p{margin:0;color:var(--muted);font-size:.9rem;overflow-wrap:anywhere}
+.sc-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.8rem;color:var(--muted);overflow-wrap:anywhere}
+.sc-actions{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+.sc-actions .btn{padding:6px 12px;font-size:.85rem}
+.sc-empty{grid-column:1/-1;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.sc-more{text-align:center;margin-top:12px}
+.sc-note{color:var(--muted);font-size:.85rem;margin:14px 0 0}
 .dbg{margin-top:16px}.dbg h3{font-family:'Bricolage Grotesque','IBM Plex Sans',sans-serif;font-size:1.05rem;margin:18px 0 8px}
 .dbg .bar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
 .dcon{background:#0a0e0c;color:#d7e2dc;border-radius:10px;padding:10px;font:12.5px/1.5 'IBM Plex Mono',ui-monospace,monospace;max-height:180px;overflow:auto;white-space:pre-wrap;word-break:break-word}
@@ -230,10 +264,28 @@ textarea { flex: 1; min-height: 340px; margin: 10px 14px 14px; border: 1px solid
       </div>
       <label class="drop" id="drop" for="file">
         <span class="drop-icon" aria-hidden="true">CODE</span>
-        <span><strong>Drop a code file or .zip here</strong><small>or click to choose one from your computer. A zip can hold a whole website.</small></span>
+        <span><strong>Drop files, a folder or a .zip here</strong><small>or click to choose. Several files at once make a project you can edit like a repository.</small></span>
       </label>
-      <input type="file" id="file" hidden>
+      <input type="file" id="file" hidden multiple><input type="file" id="file-more" hidden multiple><input type="file" id="file-dir" hidden webkitdirectory multiple>
       <div class="loaded" id="loaded" aria-live="polite"></div>
+      <div class="ws" id="ws">
+        <div class="ws-head"><strong id="ws-count"></strong>
+          <div class="ws-tools">
+            <button type="button" class="btn" id="ws-new">New file</button>
+            <button type="button" class="btn" id="ws-up">Upload files</button>
+            <button type="button" class="btn" id="ws-dir">Upload folder</button>
+            <button type="button" class="btn" id="ws-clear" hidden>Clear all</button>
+          </div>
+        </div>
+        <div class="ws-newrow" id="ws-newrow" hidden>
+          <input type="text" id="ws-name" placeholder="Name your file. Use / for folders, e.g. css/style.css" aria-label="New file name" autocomplete="off" autocapitalize="off" spellcheck="false">
+          <button type="button" class="btn primary" id="ws-create">Create file</button>
+          <button type="button" class="btn" id="ws-cancel">Cancel</button>
+        </div>
+        <input type="search" id="ws-filter" placeholder="Go to file" aria-label="Filter files" hidden>
+        <div class="ws-list" id="ws-list" hidden></div>
+        <div class="ws-note" id="ws-note" aria-live="polite"></div>
+      </div>
       <textarea id="code" spellcheck="false" aria-label="Code"></textarea>
     </div>
 
@@ -296,8 +348,20 @@ textarea { flex: 1; min-height: 340px; margin: 10px 14px 14px; border: 1px solid
   </section>
 
   <section class="sites">
-    <div class="sites-head"><h2>Your published sites</h2><small>Saved in this browser</small></div>
+    <div class="sites-head"><h2>Your published sites</h2><span><small id="sync-state">Saved in this browser. Log in to keep them on all your devices.</small> <button class="btn" id="sync-now" type="button" hidden style="padding:4px 10px;font-size:0.8rem">Sync now</button></span></div>
     <div class="list" id="list"></div>
+  </section>
+
+  <section class="showcase" id="showcase">
+    <div class="sites-head"><h2>Showcase</h2><small>Projects people built and shared with the world</small></div>
+    <div class="sc-bar">
+      <input id="sc-q" type="search" placeholder="Search projects" aria-label="Search the showcase" autocomplete="off">
+      <button class="btn" id="sc-refresh" type="button">Refresh</button>
+      <button class="btn" id="sc-share" type="button">Copy showcase link</button>
+    </div>
+    <div class="sc-grid" id="sc-grid" aria-live="polite"></div>
+    <div class="sc-more"><button class="btn" id="sc-more" type="button" hidden>Load more</button></div>
+    <p class="sc-note">Publish to Netlify or GitHub Pages, log in, then press Showcase on your site above. Instant links are too long to list. See something wrong? Press Report. A project is hidden after 3 reports.</p>
   </section>
 </div>
 
@@ -414,6 +478,7 @@ textarea { flex: 1; min-height: 340px; margin: 10px 14px 14px; border: 1px solid
   function clearSession() {
     session = null;
     localStorage.removeItem('launchpad-session');
+    dropSyncedLocal();
     updateAccountUI();
   }
   function updateAccountUI() {
@@ -421,7 +486,8 @@ textarea { flex: 1; min-height: 340px; margin: 10px 14px 14px; border: 1px solid
     if (!btn) return;
     btn.textContent = session ? session.email : 'Log in';
     if ($('ai-locked')) { $('ai-locked').hidden = !!session; $('ai-form').hidden = !session; }
-    if (session) aiLoadBalance(); else if ($('ai-credits')) $('ai-credits').textContent = '';
+    if (session) { aiLoadBalance(); syncSites(); } else if ($('ai-credits')) $('ai-credits').textContent = '';
+    setSyncState();
   }
 
   /* ---------- AI website builder ---------- */
@@ -538,8 +604,12 @@ textarea { flex: 1; min-height: 340px; margin: 10px 14px 14px; border: 1px solid
 
   /* ---------- preview ---------- */
   function refresh() {
-    var out = build(code.value);
-    if (bundle && curLang === 'html') { try { out = inlineAssets(out, bundle.files, bundle.entry); } catch (e) {} }
+    var out;
+    if (bundle) {
+      out = entryText();
+      if (out) { try { out = inlineAssets(out, bundle.files, bundle.entry); } catch (e) {} }
+      else out = '<p style="font-family:system-ui,sans-serif;padding:24px;color:#666">Add an HTML page, for example index.html, to see a preview.</p>';
+    } else out = build(code.value);
     $('preview').srcdoc = out;
   }
 
@@ -765,45 +835,228 @@ textarea { flex: 1; min-height: 340px; margin: 10px 14px 14px; border: 1px solid
     if (!entry) throw new Error('No HTML page found in the zip. Add an index.html and try again.');
     return { files: files, entry: entry, total: total };
   }
-  function showBundle() {
+  /* ---------- project workspace: GitHub-style files ---------- */
+  var WS_MAX_FILES = 500;
+  var TEXT_EXT = /\.(html?|css|m?js|json|txt|md|svg|xml|csv|tsv|webmanifest|map|ya?ml|toml|ini|cfg|conf|php|py|rb|go|rs|tsx?|jsx|vue|sh|sql|log)$/i;
+  var BIN_EXT = /\.(png|jpe?g|gif|webp|avif|ico|bmp|woff2?|ttf|otf|eot|mp3|wav|ogg|mp4|webm|pdf|zip|gz)$/i;
+  var wsEnc = new TextEncoder(), wsDec = new TextDecoder();
+  var wsRename = null, wsArm = null, wsArmT = null;
+
+  function isTextFile(path, bytes) {
+    if (TEXT_EXT.test(path)) return true;
+    if (BIN_EXT.test(path)) return false;
+    var n = Math.min(bytes.length, 4096);
+    for (var i = 0; i < n; i++) if (bytes[i] === 0) return false;
+    try { new TextDecoder('utf-8', { fatal: true }).decode(bytes.subarray(0, n), { stream: true }); return true; } catch (e) { return false; }
+  }
+  function isZip(f) { return /\.zip$/i.test(f.name) || f.type === 'application/zip' || f.type === 'application/x-zip-compressed'; }
+  function cleanPath(p) {
+    p = String(p || '').replace(/\\/g, '/').trim().replace(/^(\.\/)+/, '').replace(/^\/+/, '');
+    if (!p || p.length > 200 || /\/$/.test(p)) return null;
+    var segs = p.split('/');
+    for (var i = 0; i < segs.length; i++) { var s = segs[i]; if (!s || s === '.' || s === '..' || s.length > 100 || /[<>:"|?*\u0000-\u001f]/.test(s)) return null; }
+    return segs.join('/');
+  }
+  function starterFor(p) {
+    if (/\.html?$/i.test(p)) return '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>New page</title>\n</head>\n<body>\n  <h1>New page</h1>\n</body>\n</html>\n';
+    if (/\.css$/i.test(p)) return '/* styles */\nbody { font-family: system-ui, sans-serif; }\n';
+    if (/\.m?js$/i.test(p)) return '// script\n';
+    if (/\.json$/i.test(p)) return '{}\n';
+    if (/\.md$/i.test(p)) return '# Title\n';
+    return '';
+  }
+  function wsTotal() { var t = 0; if (bundle) bundle.files.forEach(function (v) { t += v.length; }); return t; }
+  function wsNote(msg, bad) { var n = $('ws-note'); n.style.color = bad ? 'var(--warn)' : ''; n.textContent = msg || ''; }
+  function newBundle(name) {
+    bundle = { name: name || 'project', files: new Map(), entry: null, entryFixed: false, sel: null, editing: false };
+    setLang('html'); return bundle;
+  }
+  function ensureBundle() {
+    if (bundle) return bundle;
+    newBundle('project');
+    var t = code.value;
+    if (t && t.trim() && t !== STARTER && curLang === 'html') { bundle.files.set('index.html', wsEnc.encode(t)); bundle.entry = 'index.html'; bundle.sel = 'index.html'; bundle.editing = true; }
+    return bundle;
+  }
+  function pickEntry() {
+    var b = bundle; if (!b) return;
+    if (b.entry && b.files.has(b.entry) && /\.html?$/i.test(b.entry)) return;
+    var pages = Array.from(b.files.keys()).filter(function (x) { return /\.html?$/i.test(x); }).sort(function (x, y) {
+      var d = x.split('/').length - y.split('/').length; if (d) return d;
+      var ix = /(^|\/)index\.html?$/i.test(x) ? 0 : 1, iy = /(^|\/)index\.html?$/i.test(y) ? 0 : 1;
+      return ix - iy || x.localeCompare(y);
+    });
+    b.entry = pages[0] || null;
+  }
+  function settleEntry() {
+    var b = bundle; if (!b) return;
+    if (!b.entryFixed && b.files.has('index.html')) b.entry = 'index.html'; else pickEntry();
+  }
+  function flushEditor() {
+    var b = bundle; if (!b || !b.sel || !b.editing || !b.files.has(b.sel)) return;
+    b.files.set(b.sel, wsEnc.encode(code.value));
+  }
+  function entryText() {
+    flushEditor();
+    var bytes = bundle && bundle.entry && bundle.files.get(bundle.entry);
+    return bytes ? wsDec.decode(bytes) : '';
+  }
+  function updateStats() {
+    if (!bundle) return;
+    var n = bundle.files.size;
+    $('ws-count').textContent = n + (n === 1 ? ' file' : ' files') + ' · ' + fmtSize(wsTotal());
+  }
+  function selectFile(path) {
+    var b = bundle; if (!b || !b.files.has(path)) return;
+    flushEditor(); b.sel = path;
+    var bytes = b.files.get(path);
+    if (isTextFile(path, bytes) && bytes.length <= 1500000) { b.editing = true; code.readOnly = false; code.value = wsDec.decode(bytes); }
+    else { b.editing = false; code.readOnly = true; code.value = '(' + mimeOf(path) + ', ' + fmtSize(bytes.length) + ')\nThis file can\'t be edited here. It will be published exactly as it is.'; }
+    renderFiles();
+  }
+  function renderFiles() {
+    var b = bundle, list = $('ws-list'), has = !!b;
+    list.hidden = !has; $('ws-filter').hidden = !has; $('ws-clear').hidden = !has; $('lang').disabled = has;
+    if (!has) { $('ws-count').textContent = 'Single file. Add more files to build a project.'; list.innerHTML = ''; return; }
+    updateStats();
+    var keep = list.scrollTop, q = ($('ws-filter').value || '').trim().toLowerCase();
+    var paths = Array.from(b.files.keys()).sort();
+    var shown = q ? paths.filter(function (x) { return x.toLowerCase().indexOf(q) > -1; }) : paths, cap = 150;
+    list.innerHTML = shown.slice(0, cap).map(function (x) {
+      var i = x.lastIndexOf('/'), dir = i > -1 ? x.slice(0, i + 1) : '', base = x.slice(i + 1), isEntry = x === b.entry;
+      var nm = wsRename === x
+        ? '<input type="text" class="ws-ren" data-ren="' + esc(x) + '" value="' + esc(x) + '" aria-label="New name for ' + esc(x) + '">'
+        : '<span class="p" title="' + esc(x) + '"><i>' + esc(dir) + '</i>' + esc(base) + '</span>';
+      return '<div class="ws-row' + (x === b.sel ? ' sel' : '') + '" data-open="' + esc(x) + '">' + nm +
+        (isEntry ? '<span class="tag">start page</span>' : '') +
+        '<span class="s">' + fmtSize(b.files.get(x).length) + '</span>' +
+        (!isEntry && /\.html?$/i.test(x) ? '<button type="button" data-entry="' + esc(x) + '" title="Make this the start page">Start</button>' : '') +
+        '<button type="button" data-rn="' + esc(x) + '" aria-label="Rename ' + esc(x) + '">Rename</button>' +
+        '<button type="button" data-del="' + esc(x) + '" aria-label="Delete ' + esc(x) + '">' + (wsArm === x ? 'Sure?' : 'Delete') + '</button></div>';
+    }).join('') + (shown.length > cap ? '<div class="ws-note">' + (shown.length - cap) + ' more files. Use the filter to find one.</div>' : '') + (!shown.length ? '<div class="ws-note">No files match.</div>' : '');
+    list.scrollTop = keep;
+    var ri = list.querySelector('.ws-ren'); if (ri) { ri.focus(); ri.select(); }
+  }
+  function addFiles(entries) {
+    flushEditor();
+    var b = ensureBundle(), added = 0, skipped = 0, first = null;
+    entries.forEach(function (en) {
+      var p = cleanPath(en.path);
+      if (!p) { skipped++; return; }
+      var had = b.files.has(p), prev = had ? b.files.get(p).length : 0;
+      if ((!had && b.files.size >= WS_MAX_FILES) || wsTotal() - prev + en.bytes.length > ZIP_LIMIT) { skipped++; return; }
+      b.files.set(p, en.bytes); added++; if (!first) first = p;
+    });
+    settleEntry();
+    var keep = b.sel && b.files.has(b.sel) ? b.sel : (b.entry || first || Array.from(b.files.keys()).sort()[0]);
+    b.editing = false;
+    if (keep) selectFile(keep); else renderFiles();
+    refresh();
+    return { added: added, skipped: skipped };
+  }
+  function createFile(raw) {
+    var p = cleanPath(raw);
+    if (!p) { wsNote('Use a name like pages/about.html. No empty parts, "..", or special characters.', true); return false; }
+    var b = ensureBundle(); flushEditor();
+    if (b.files.has(p)) { wsNote(p + ' already exists.', true); return false; }
+    if (b.files.size >= WS_MAX_FILES) { wsNote('A project can have up to ' + WS_MAX_FILES + ' files.', true); return false; }
+    var clash = false; b.files.forEach(function (v, k) { if (k.indexOf(p + '/') === 0 || p.indexOf(k + '/') === 0) clash = true; });
+    if (clash) { wsNote('That name clashes with an existing file or folder.', true); return false; }
+    b.files.set(p, wsEnc.encode(starterFor(p)));
+    settleEntry(); b.editing = false; selectFile(p); refresh(); wsNote('Created ' + p + '. Type in the editor below.'); code.focus();
+    return true;
+  }
+  function removeFile(p) {
+    var b = bundle; if (!b) return;
+    flushEditor(); b.files.delete(p);
+    if (b.entry === p) { b.entry = null; b.entryFixed = false; }
+    pickEntry();
+    if (!b.files.size) { bundle = null; code.readOnly = false; code.value = ''; renderFiles(); refresh(); wsNote('Removed ' + p + '.'); return; }
+    if (b.sel === p) { b.editing = false; selectFile(b.entry || Array.from(b.files.keys()).sort()[0]); } else renderFiles();
+    refresh(); wsNote('Removed ' + p + '.');
+  }
+  function renameFile(oldp, raw) {
+    var b = bundle, np = cleanPath(raw); if (!b) return false;
+    if (!np) { wsNote('That is not a valid file name.', true); return false; }
+    if (np === oldp) return true;
+    if (b.files.has(np)) { wsNote(np + ' already exists.', true); return false; }
+    flushEditor();
+    b.files.set(np, b.files.get(oldp)); b.files.delete(oldp);
+    if (b.entry === oldp) b.entry = np;
+    if (b.sel === oldp) b.sel = np;
+    settleEntry(); renderFiles(); refresh(); wsNote('Renamed to ' + np + '.');
+    return true;
+  }
+
+  /* reading what the person picks or drops (files, folders, zips) */
+  function stripRoot(items) {
+    if (items.length && items.every(function (it) { return it.path.indexOf('/') > -1 && it.path.split('/')[0] === items[0].path.split('/')[0]; }))
+      return items.map(function (it) { return { path: it.path.slice(it.path.indexOf('/') + 1), file: it.file }; });
+    return items;
+  }
+  function readDir(dirEntry) {
+    return new Promise(function (res, rej) {
+      var all = [], rd = dirEntry.createReader();
+      (function next() { rd.readEntries(function (batch) { if (!batch.length) res(all); else { all = all.concat(Array.from(batch)); next(); } }, rej); })();
+    });
+  }
+  async function walkEntry(en, prefix, out) {
+    if (out.length > WS_MAX_FILES + 300) return;
+    if (en.isFile) { var f = await new Promise(function (res, rej) { en.file(res, rej); }); out.push({ path: prefix + en.name, file: f }); }
+    else if (en.isDirectory) { var kids = await readDir(en); for (var i = 0; i < kids.length; i++) await walkEntry(kids[i], prefix + en.name + '/', out); }
+  }
+  async function droppedItems(dt) {
+    var out = [], ents = [];
+    if (dt.items && dt.items.length && dt.items[0].webkitGetAsEntry) {
+      for (var i = 0; i < dt.items.length; i++) { var en = dt.items[i].webkitGetAsEntry(); if (en) ents.push(en); }
+      for (var j = 0; j < ents.length; j++) await walkEntry(ents[j], '', out);
+    } else Array.from(dt.files).forEach(function (f) { out.push({ path: f.name, file: f }); });
+    return out;
+  }
+  function handleFiles(fl) { handleItems(Array.from(fl).map(function (f) { return { path: f.webkitRelativePath || f.name, file: f }; })); }
+  async function handleItems(items) {
     var L = $('loaded');
-    if (!bundle) { L.textContent = ''; return; }
-    var names = Array.from(bundle.files.keys()).sort();
-    L.style.color = '';
-    L.innerHTML = esc('Loaded ' + bundle.name + ': ' + names.length + (names.length === 1 ? ' file, ' : ' files, ') + fmtSize(bundle.total) + '. Starting page: ' + bundle.entry + '. ') +
-      '<button type="button" class="btn" id="zip-clear" style="padding:2px 10px;font-size:0.8rem">Remove zip</button>' +
-      '<details style="margin-top:6px"><summary>Show files</summary><div class="mono" style="max-height:140px;overflow:auto;font-size:0.8rem">' + names.map(esc).join('<br>') + '</div></details>' +
-      '<small style="display:block;margin-top:6px;color:var(--muted)">Netlify and GitHub Pages publish every file, so links between pages work. The preview, Instant link and Download file show the starting page with its styles, scripts and images built in.</small>';
-    $('zip-clear').onclick = function () { bundle = null; showBundle(); refresh(); };
+    items = stripRoot(items.filter(function (it) { return !/(^|\/)(\.DS_Store|Thumbs\.db)$/.test(it.path) && !/(^|\/)__MACOSX\//.test(it.path); }));
+    if (!items.length) return;
+    if (items.length === 1 && isZip(items[0].file)) return loadZip(items[0].file);
+    if (items.length === 1 && !bundle && items[0].path.indexOf('/') === -1) { loadFile(items[0].file); return; }
+    L.style.color = ''; L.textContent = 'Reading ' + items.length + ' files…';
+    var entries = [], oversize = 0, failed = '';
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      try {
+        if (isZip(it.file)) { var z = await readZip(await it.file.arrayBuffer()); z.files.forEach(function (bytes, path) { entries.push({ path: path, bytes: bytes }); }); continue; }
+        if (it.file.size > 25 * 1048576) { oversize++; continue; }
+        entries.push({ path: it.path, bytes: new Uint8Array(await it.file.arrayBuffer()) });
+      } catch (e) { failed = it.file.name + ': ' + (e.message || 'could not be read'); }
+    }
+    var r = addFiles(entries), skipped = r.skipped + oversize;
+    L.style.color = failed ? 'var(--warn)' : '';
+    L.textContent = 'Added ' + r.added + (r.added === 1 ? ' file' : ' files') + (skipped ? ', skipped ' + skipped + ' (too many, too large, or invalid names)' : '') + '.' + (failed ? ' ' + failed : '');
   }
   async function loadZip(f) {
     var L = $('loaded'); L.style.color = ''; L.textContent = 'Reading ' + f.name + '…';
     try {
       if (typeof DecompressionStream === 'undefined') throw new Error('This browser can\'t open zip files. Use a recent Chrome, Edge, Firefox or Safari.');
       var z = await readZip(await f.arrayBuffer());
-      setLang('html');
-      bundle = { name: f.name, files: z.files, entry: z.entry, total: z.total };
-      code.value = new TextDecoder().decode(z.files.get(z.entry));
-      refresh(); showBundle();
-      var base = clean(f.name.replace(/\.zip$/i, '')).replace(/-$/, '');
-      if (base) { $('sitename').value = base; updateAddr(); }
+      var fresh = !bundle;
+      if (fresh) newBundle(f.name.replace(/\.zip$/i, ''));
+      var entries = Array.from(z.files.entries()).map(function (e) { return { path: e[0], bytes: e[1] }; });
+      var r = addFiles(entries);
+      L.textContent = (fresh ? 'Loaded ' : 'Added ') + r.added + ' files from ' + f.name + ' (' + fmtSize(z.total) + ').' + (r.skipped ? ' Skipped ' + r.skipped + '.' : '');
+      if (fresh) { var base = clean(f.name.replace(/\.zip$/i, '')).replace(/-$/, ''); if (base) { $('sitename').value = base; updateAddr(); } }
     } catch (e) {
-      bundle = null; L.style.color = 'var(--warn)'; L.textContent = e.message || 'Could not read that zip file.';
+      L.style.color = 'var(--warn)'; L.textContent = e.message || 'Could not read that zip file.';
     }
   }
-  function handleFile(f) {
-    if (!f) return;
-    if (/\.zip$/i.test(f.name) || f.type === 'application/zip' || f.type === 'application/x-zip-compressed') { loadZip(f); return; }
-    bundle = null; loadFile(f);
-  }
-  /* the files to deploy when a zip is loaded (the page text box wins over the zip's copy) */
+  /* the files to deploy when a project exists */
   function siteFiles() {
-    if (!bundle || curLang !== 'html') return null;
-    var enc = new TextEncoder(), m = new Map(bundle.files);
-    m.set(bundle.entry, enc.encode(code.value));
+    if (!bundle || !bundle.entry) return null;
+    flushEditor();
+    var m = new Map(bundle.files);
     if (!m.has('index.html')) {
       var u = encPath(bundle.entry);
-      m.set('index.html', enc.encode('<!DOCTYPE html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=' + u + '"><a href="' + u + '">Open site</a>'));
+      m.set('index.html', wsEnc.encode('<!DOCTYPE html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=' + u + '"><a href="' + u + '">Open site</a>'));
     }
     return m;
   }
@@ -833,14 +1086,20 @@ textarea { flex: 1; min-height: 340px; margin: 10px 14px 14px; border: 1px solid
     for (var i = 0; i < files.length; i++) { files[i].digest = await sha1b(files[i].bytes); map['/' + files[i].path] = files[i].digest; }
     log('Starting deploy of ' + files.length + (files.length === 1 ? ' file…' : ' files…'));
     var deploy = await api('https://api.netlify.com/api/v1/sites/' + site.id + '/deploys', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, H), body: JSON.stringify({ files: map }) });
-    var need = deploy.required || [], seen = {};
-    for (var j = 0; j < files.length; j++) {
-      var f = files[j];
-      if (need.indexOf(f.digest) === -1 || seen[f.digest]) continue;
-      seen[f.digest] = 1;
-      log('Uploading ' + f.path + ' (' + fmtSize(f.bytes.length) + ')…');
-      await api('https://api.netlify.com/api/v1/deploys/' + deploy.id + '/files/' + encPath(f.path), { method: 'PUT', headers: Object.assign({ 'Content-Type': 'application/octet-stream' }, H), body: new Blob([f.bytes]) });
+    var need = {}, seenD = {}, jobs = [];
+    (deploy.required || []).forEach(function (d) { need[d] = 1; });
+    files.forEach(function (f) { if (need[f.digest] && !seenD[f.digest]) { seenD[f.digest] = 1; jobs.push(f); } });
+    var totalJobs = jobs.length, doneJobs = 0;
+    if (totalJobs) log('Uploading ' + totalJobs + (totalJobs === 1 ? ' file…' : ' files…'));
+    async function worker() {
+      while (jobs.length) {
+        var f = jobs.shift();
+        await api('https://api.netlify.com/api/v1/deploys/' + deploy.id + '/files/' + encPath(f.path), { method: 'PUT', headers: Object.assign({ 'Content-Type': 'application/octet-stream' }, H), body: new Blob([f.bytes]) });
+        doneJobs++;
+        if (totalJobs > 1 && (doneJobs % 25 === 0 || doneJobs === totalJobs)) log('Uploaded ' + doneJobs + ' of ' + totalJobs + ' files…');
+      }
     }
+    await Promise.all([worker(), worker(), worker(), worker(), worker()]);
     log('Waiting for Netlify to go live…');
     for (var t = 0; t < 30; t++) {
       var d = await api('https://api.netlify.com/api/v1/deploys/' + deploy.id, { headers: H });
@@ -854,6 +1113,7 @@ textarea { flex: 1; min-height: 340px; margin: 10px 14px 14px; border: 1px solid
   /* ---------- GitHub Pages ---------- */
   async function publishGitHub(name, input, token) {
     var files = toFileList(input);
+    if (files.length > 100) log('This project has ' + files.length + ' files. GitHub takes them one at a time, so it can take several minutes. Netlify is much faster for big sites.');
     var H = { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json' };
     var J = Object.assign({ 'Content-Type': 'application/json' }, H);
     log('Checking your GitHub account…');
@@ -873,7 +1133,14 @@ textarea { flex: 1; min-height: 340px; margin: 10px 14px 14px; border: 1px solid
       log('Uploading ' + f.path + ' (' + (i + 1) + '/' + files.length + ')…');
       var put = { message: sha ? 'Update ' + f.path : 'Add ' + f.path, content: b64bytes(f.bytes) };
       if (sha) put.sha = sha;
-      await api(api_url, { method: 'PUT', headers: J, body: JSON.stringify(put) });
+      for (var tries = 0; ; tries++) {
+        try { await api(api_url, { method: 'PUT', headers: J, body: JSON.stringify(put) }); break; }
+        catch (e) {
+          if ((e.status === 403 || e.status === 429) && tries < 4) { log('GitHub asked us to slow down. Waiting a minute, then continuing…'); await sleep(60000); continue; }
+          throw e;
+        }
+      }
+      if (files.length > 60) await sleep(800);
     }
     repo = await api('https://api.github.com/repos/' + me.login + '/' + name, { headers: H });
     var branch = repo.default_branch || 'main';
@@ -915,7 +1182,7 @@ textarea { flex: 1; min-height: 340px; margin: 10px 14px 14px; border: 1px solid
       '<textarea class="linkbox" id="linkbox" readonly aria-label="Your site link">' + esc(url) + '</textarea>');
     history = history.filter(function (h) { return !(h.name === name && h.host === 'link'); });
     history.unshift({ name: name, host: 'link', url: url, title: titleOf(html, name), updated: new Date().toISOString() });
-    store('launchpad-history', history.slice(0, 50));
+    saveHistory(); pushSite(history[0]);
     renderList();
   }
 
@@ -961,9 +1228,10 @@ textarea { flex: 1; min-height: 340px; margin: 10px 14px 14px; border: 1px solid
   async function publish() {
     if (busy) return;
     var name = clean($('sitename').value).replace(/-$/, '');
-    var html = build(code.value);
+    var html = bundle ? entryText() : build(code.value);
     notice('', ''); $('log').innerHTML = ''; $('log').hidden = true;
     if (!name) { notice('err', 'Choose a site name first, for example <span class="mono">my-portfolio</span>.'); return; }
+    if (bundle && !bundle.entry) { notice('err', 'Add an HTML page to your project first, for example <span class="mono">index.html</span>.'); return; }
     if (!html.trim()) { notice('err', 'There is no HTML to publish. Upload a file or paste your code.'); return; }
     var zfiles = null, flat = html;
     try { zfiles = siteFiles(); if (zfiles) flat = inlineAssets(html, zfiles, bundle.entry); }
@@ -982,7 +1250,7 @@ textarea { flex: 1; min-height: 340px; margin: 10px 14px 14px; border: 1px solid
       notice('ok', '<strong>' + esc(name) + ' is live.</strong> <a class="url" href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(url) + '</a> <button class="btn" type="button" data-copy="' + esc(url) + '">Copy link</button>');
       history = history.filter(function (h) { return !(h.name === name && h.host === host); });
       history.unshift({ name: name, host: host, url: url, title: titleOf(html, name), updated: new Date().toISOString() });
-      store('launchpad-history', history.slice(0, 50));
+      saveHistory(); pushSite(history[0]);
       renderList();
     } catch (e) {
       var msg;
@@ -998,16 +1266,180 @@ textarea { flex: 1; min-height: 340px; margin: 10px 14px 14px; border: 1px solid
     }
   }
 
+  /* ---------- account sync (published sites follow your login to any device) ---------- */
+  var syncing = false;
+  function saveHistory() { store('launchpad-history', history.slice(0, 100)); }
+  function uidOf(t) {
+    try {
+      var p = String(t).split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); while (p.length % 4) p += '=';
+      var s = JSON.parse(atob(p)).sub; return /^[0-9a-f-]{36}$/i.test(s) ? s : null;
+    } catch (e) { return null; }
+  }
+  async function sbRefresh() {
+    if (!session || !session.refresh_token) return false;
+    try {
+      var res = await fetch(SB_URL + '/auth/v1/token?grant_type=refresh_token', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ refresh_token: session.refresh_token }) });
+      var data = await res.json().catch(function () { return {}; });
+      if (!res.ok || !data.access_token) return false;
+      session.access_token = data.access_token; session.refresh_token = data.refresh_token || session.refresh_token;
+      localStorage.setItem('launchpad-session', JSON.stringify(session));
+      return true;
+    } catch (e) { return false; }
+  }
+  async function sbRest(path, o, retried) {
+    o = o || {};
+    if (!session) throw new Error('Log in first.');
+    var h = { apikey: SB_KEY, Authorization: 'Bearer ' + session.access_token, 'Content-Type': 'application/json' };
+    if (o.prefer) h.Prefer = o.prefer;
+    var r = await fetch(SB_URL + '/rest/v1/' + path, { method: o.method || 'GET', headers: h, body: o.body ? JSON.stringify(o.body) : undefined });
+    if (r.status === 401 && !retried && await sbRefresh()) return sbRest(path, o, true);
+    var t = await r.text(), d = null; try { d = t ? JSON.parse(t) : null; } catch (e) {}
+    if (!r.ok) throw new Error((d && (d.message || d.hint)) || ('HTTP ' + r.status));
+    return d;
+  }
+  function setSyncState(msg) {
+    var el = $('sync-state'); if (!el) return;
+    el.textContent = msg || (session ? 'Synced to your account' : 'Saved in this browser. Log in to keep them on all your devices.');
+    $('sync-now').hidden = !session;
+  }
+  async function pushSite(h) {
+    if (!session || !h || !h.url || h.url.length > 200000) return false;
+    var uid = uidOf(session.access_token); if (!uid) return false;
+    var pub = h.pub || {};
+    var body = { title: String(h.title || h.name).slice(0, 120), url: h.url, description: String(pub.desc || '').slice(0, 160), author_name: String(pub.by || '').slice(0, 30), is_public: !!pub.on && h.host !== 'link' };
+    try {
+      var q = 'pp_sites?owner=eq.' + uid + '&name=eq.' + encodeURIComponent(h.name) + '&host=eq.' + encodeURIComponent(h.host);
+      var upd = await sbRest(q, { method: 'PATCH', body: body, prefer: 'return=representation' });
+      if (!upd || !upd.length) await sbRest('pp_sites', { method: 'POST', body: Object.assign({ name: h.name, host: h.host }, body), prefer: 'return=minimal' });
+      h.sy = 1; saveHistory(); return true;
+    } catch (e) { return false; }
+  }
+  async function dropSite(h) {
+    if (!session || !h) return;
+    var uid = uidOf(session.access_token); if (!uid) return;
+    try { await sbRest('pp_sites?owner=eq.' + uid + '&name=eq.' + encodeURIComponent(h.name) + '&host=eq.' + encodeURIComponent(h.host), { method: 'DELETE' }); setSyncState(); loadShowcase(); } catch (e) {}
+  }
+  /* on logout, remove the account's sites from this device (they stay in the account) */
+  function dropSyncedLocal() {
+    if (!load('launchpad-history-owner', null)) return;
+    history = history.filter(function (h) { return !h.sy; });
+    saveHistory(); store('launchpad-history-owner', null); renderList();
+  }
+  async function syncSites() {
+    if (!session || syncing) return;
+    var uid = uidOf(session.access_token); if (!uid) return;
+    syncing = true; setSyncState('Syncing…');
+    try {
+      var owner = load('launchpad-history-owner', null);
+      if (owner && owner !== uid) history = history.filter(function (h) { return !h.sy; }); /* another account's list: never merge it */
+      var rows = await sbRest('pp_sites?select=name,host,title,url,description,author_name,is_public,updated_at&owner=eq.' + uid + '&order=updated_at.desc&limit=100');
+      var local = {}; history.forEach(function (h) { local[h.host + '/' + h.name] = h; });
+      var out = [], seen = {}, toPush = [];
+      (rows || []).forEach(function (r) {
+        var k = r.host + '/' + r.name, l = local[k]; seen[k] = 1;
+        if (l && (Date.parse(l.updated) || 0) > (Date.parse(r.updated_at) || 0) + 1000) { out.push(l); toPush.push(l); }
+        else out.push({ name: r.name, host: r.host, url: r.url, title: r.title || r.name, updated: r.updated_at, sy: 1, pub: { on: !!r.is_public, desc: r.description || '', by: r.author_name || '' } });
+      });
+      history.forEach(function (h) {
+        if (seen[h.host + '/' + h.name]) return;
+        if (h.sy) return; /* it was synced before and is gone from the account, so it was removed on another device */
+        out.push(h); toPush.push(h);
+      });
+      out.sort(function (x, y) { return (Date.parse(y.updated) || 0) - (Date.parse(x.updated) || 0); });
+      history = out.slice(0, 100); store('launchpad-history-owner', uid); saveHistory(); renderList();
+      for (var i = 0; i < toPush.length; i++) await pushSite(toPush[i]);
+      setSyncState();
+    } catch (e) { setSyncState('Could not sync. Press Sync now to try again.'); }
+    finally { syncing = false; }
+  }
+
   /* ---------- list ---------- */
   function renderList() {
     $('count').textContent = history.length ? history.length + (history.length === 1 ? ' site published' : ' sites published') : '';
-    if (!history.length) { $('list').innerHTML = '<div class="empty">Nothing published from this browser yet. Sites you publish show up here with their links.</div>'; return; }
+    if (!history.length) { $('list').innerHTML = '<div class="empty">Nothing published yet. Sites you publish show up here with their links' + (session ? '.' : ', and follow your login to other devices.') + '</div>'; return; }
     $('list').innerHTML = history.map(function (h, i) {
+      var canShare = h.host !== 'link', on = !!(h.pub && h.pub.on);
       return '<div class="row"><span class="pill">' + (h.host === 'netlify' ? 'Netlify' : h.host === 'github' ? 'GitHub' : 'Link') + '</span>' +
-        '<div class="row-main"><div class="row-title">' + esc(h.title) + '</div><div class="row-meta mono">' + esc(h.url.length > 90 ? h.url.slice(0, 90) + '…' : h.url) + '</div></div>' +
-        '<div class="row-actions"><a href="' + esc(h.url) + '" target="_blank" rel="noopener">Open</a><button type="button" data-copy="' + esc(h.url) + '">Copy link</button><button type="button" data-forget="' + i + '">Remove from list</button></div></div>';
+        '<div class="row-main"><div class="row-title">' + esc(h.title) + (on ? ' <span class="pill" style="margin-left:6px">In showcase</span>' : '') + '</div><div class="row-meta mono">' + esc(h.url.length > 90 ? h.url.slice(0, 90) + '…' : h.url) + '</div></div>' +
+        '<div class="row-actions"><a href="' + esc(h.url) + '" target="_blank" rel="noopener">Open</a><button type="button" data-copy="' + esc(h.url) + '">Copy link</button>' +
+        (canShare ? '<button type="button" data-share="' + i + '">' + (on ? 'Showcase settings' : 'Showcase') + '</button>' : '') +
+        '<button type="button" data-forget="' + i + '">Remove from list</button></div></div>';
     }).join('');
   }
+
+  /* ---------- showcase: share to the world ---------- */
+  function openShare(i) {
+    var h = history[i]; if (!h || h.host === 'link') return;
+    if (!session) { openAuth(); $('auth-msg').style.color = 'var(--muted)'; $('auth-msg').textContent = 'Log in to share a site in the showcase.'; return; }
+    var pub = h.pub || { on: false, desc: '', by: '' }, ov = document.createElement('div');
+    var fld = 'width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;';
+    var lab = 'display:grid;gap:4px;font-weight:600;font-size:0.85rem;';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:70;display:flex;align-items:center;justify-content:center;padding:16px;';
+    ov.innerHTML = '<div role="dialog" aria-modal="true" aria-labelledby="sh-title" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;width:min(460px,100%);display:grid;gap:12px;max-height:100%;overflow:auto;">' +
+      '<h2 id="sh-title" style="margin:0">' + (pub.on ? 'Showcase settings' : 'Show this site to the world') + '</h2>' +
+      '<p style="margin:0;color:var(--muted);font-size:0.9rem">Anyone can see the title, link, description and display name below. Only share pages you are happy to make public.</p>' +
+      '<div class="mono" style="font-size:0.8rem;word-break:break-all">' + esc(h.url) + '</div>' +
+      '<label style="' + lab + '">Display name<input id="sh-by" maxlength="30" autocomplete="off" placeholder="Anonymous" value="' + esc(pub.by || load('launchpad-author', '')) + '" style="' + fld + '"></label>' +
+      '<label style="' + lab + '">Short description<textarea id="sh-desc" maxlength="160" rows="3" placeholder="What is it?" style="' + fld + 'resize:vertical">' + esc(pub.desc || '') + '</textarea></label>' +
+      '<div id="sh-msg" aria-live="polite" style="min-height:1.2em;font-size:0.85rem"></div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end"><button class="btn" id="sh-cancel" type="button">Cancel</button>' +
+      (pub.on ? '<button class="btn" id="sh-off" type="button">Remove from showcase</button>' : '') +
+      '<button class="btn primary" id="sh-go" type="button">' + (pub.on ? 'Save changes' : 'Share to showcase') + '</button></div></div>';
+    document.body.appendChild(ov);
+    var onKey = function (e) { if (e.key === 'Escape') close(); };
+    function close() { ov.remove(); document.removeEventListener('keydown', onKey); }
+    document.addEventListener('keydown', onKey);
+    ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+    $('sh-cancel').onclick = close;
+    async function apply(on) {
+      var by = $('sh-by').value.trim().slice(0, 30) || 'Anonymous', desc = $('sh-desc').value.trim().slice(0, 160), msg = $('sh-msg');
+      msg.style.color = 'var(--muted)'; msg.textContent = 'Saving…';
+      h.pub = { on: on, desc: desc, by: by }; store('launchpad-author', by); saveHistory();
+      if (!(await pushSite(h))) { msg.style.color = 'var(--warn)'; msg.textContent = 'Could not save. Check your connection and try again.'; return; }
+      close(); renderList(); loadShowcase();
+    }
+    $('sh-go').onclick = function () { apply(true); };
+    if ($('sh-off')) $('sh-off').onclick = function () { apply(false); };
+    $('sh-by').focus();
+  }
+
+  var scAll = [], scOffset = 0, SC_PAGE = 24;
+  function hostOf(u) { try { return new URL(u).hostname; } catch (e) { return ''; } }
+  async function loadShowcase(more) {
+    var grid = $('sc-grid');
+    if (!more) { scOffset = 0; scAll = []; grid.innerHTML = '<div class="empty sc-empty">Loading…</div>'; }
+    try {
+      var res = await fetch(SB_URL + '/rest/v1/pp_sites?select=id,name,host,title,description,author_name,url,updated_at&is_public=eq.true&is_hidden=eq.false&order=updated_at.desc&limit=' + SC_PAGE + '&offset=' + scOffset, { headers: { apikey: SB_KEY } });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      var rows = await res.json();
+      scAll = scAll.concat(rows); scOffset += rows.length;
+      $('sc-more').hidden = rows.length < SC_PAGE;
+      renderShowcase();
+    } catch (e) { grid.innerHTML = '<div class="empty sc-empty">Could not load the showcase. Check your connection and press Refresh.</div>'; }
+  }
+  function renderShowcase() {
+    var q = ($('sc-q').value || '').trim().toLowerCase(), grid = $('sc-grid');
+    var rows = scAll.filter(function (r) {
+      return /^https:\/\//i.test(r.url) && (!q || ((r.title || '') + ' ' + (r.description || '') + ' ' + (r.author_name || '') + ' ' + r.name).toLowerCase().indexOf(q) > -1);
+    });
+    if (!rows.length) { grid.innerHTML = '<div class="empty sc-empty">' + (scAll.length ? 'No projects match your search.' : 'No projects shared yet. Be the first: publish a site, then press Showcase on it above.') + '</div>'; return; }
+    grid.innerHTML = rows.map(function (r) {
+      return '<article class="sc-card"><div class="sc-meta"><span class="pill">' + (r.host === 'github' ? 'GitHub' : 'Netlify') + '</span><span>' + esc(hostOf(r.url)) + '</span></div>' +
+        '<h3>' + esc(r.title || r.name) + '</h3>' + (r.description ? '<p>' + esc(r.description) + '</p>' : '') +
+        '<div class="sc-meta">by ' + esc(r.author_name || 'Anonymous') + '</div>' +
+        '<div class="sc-actions"><a class="btn primary" href="' + esc(r.url) + '" target="_blank" rel="noopener noreferrer nofollow ugc">Open</a><button class="btn" type="button" data-report="' + esc(r.id) + '">Report</button></div></article>';
+    }).join('');
+  }
+  async function reportSite(id, btn) {
+    if (!session) { openAuth(); $('auth-msg').style.color = 'var(--muted)'; $('auth-msg').textContent = 'Log in to report a project.'; return; }
+    btn.disabled = true; btn.textContent = 'Reporting…';
+    try { await sbRest('pp_reports', { method: 'POST', body: { site_id: id, reason: '' }, prefer: 'return=minimal' }); btn.textContent = 'Reported'; }
+    catch (e) { if (/duplicate|already/i.test(e.message)) btn.textContent = 'Reported'; else { btn.textContent = 'Try again'; btn.disabled = false; } }
+  }
+  document.addEventListener('click', function (e) {
+    var s = e.target.closest('[data-share]'); if (s) openShare(+s.getAttribute('data-share'));
+    var r = e.target.closest('[data-report]'); if (r) reportSite(r.getAttribute('data-report'), r);
+  });
 
   function copy(text, btn) {
     var old = btn.textContent;
@@ -1016,13 +1448,13 @@ textarea { flex: 1; min-height: 340px; margin: 10px 14px 14px; border: 1px solid
   }
   document.addEventListener('click', function (e) {
     var c = e.target.closest('[data-copy]'); if (c) copy(c.getAttribute('data-copy'), c);
-    var f = e.target.closest('[data-forget]'); if (f) { history.splice(+f.getAttribute('data-forget'), 1); store('launchpad-history', history); renderList(); }
+    var f = e.target.closest('[data-forget]'); if (f) { var gone = history.splice(+f.getAttribute('data-forget'), 1)[0]; saveHistory(); renderList(); dropSite(gone); }
   });
 
   /* ---------- wiring ---------- */
   code.value = STARTER; $('sitename').value = 'my-site';
   var t;
-  code.addEventListener('input', function () { clearTimeout(t); t = setTimeout(refresh, 250); });
+  code.addEventListener('input', function () { flushEditor(); clearTimeout(t); t = setTimeout(function () { refresh(); updateStats(); }, 250); });
   $('sitename').addEventListener('input', function (e) { e.target.value = clean(e.target.value); updateAddr(); });
   $('mode-upload').onclick = function () { $('mode-upload').setAttribute('aria-pressed', 'true'); $('mode-paste').setAttribute('aria-pressed', 'false'); $('drop').hidden = false; };
   $('mode-paste').onclick = function () { $('mode-upload').setAttribute('aria-pressed', 'false'); $('mode-paste').setAttribute('aria-pressed', 'true'); $('drop').hidden = true; code.focus(); };
@@ -1045,11 +1477,49 @@ textarea { flex: 1; min-height: 340px; margin: 10px 14px 14px; border: 1px solid
     r.readAsText(f);
   }
   $('lang').onchange = function () { var n = this.value, prev = S0[curLang]; if (!code.value.trim() || code.value === prev) code.value = S0[n] || code.value; curLang = n; refresh(); };
-  $('file').addEventListener('change', function (e) { handleFile(e.target.files[0]); e.target.value = ''; });
+  $('file').addEventListener('change', function (e) { handleFiles(e.target.files); e.target.value = ''; });
   var drop = $('drop');
   ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
   ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('over'); }); });
-  drop.addEventListener('drop', function (e) { handleFile(e.dataTransfer.files[0]); });
+  drop.addEventListener('drop', function (e) { droppedItems(e.dataTransfer).then(handleItems); });
+  var wsBox = $('ws');
+  wsBox.addEventListener('dragover', function (e) { e.preventDefault(); });
+  wsBox.addEventListener('drop', function (e) { e.preventDefault(); droppedItems(e.dataTransfer).then(handleItems); });
+  $('file-more').addEventListener('change', function (e) { handleFiles(e.target.files); e.target.value = ''; });
+  $('file-dir').addEventListener('change', function (e) { handleFiles(e.target.files); e.target.value = ''; });
+  $('ws-up').onclick = function () { $('file-more').click(); };
+  $('ws-dir').onclick = function () { $('file-dir').click(); };
+  $('ws-new').onclick = function () { var r = $('ws-newrow'); r.hidden = !r.hidden; if (!r.hidden) { $('ws-name').value = ''; $('ws-name').focus(); } };
+  $('ws-create').onclick = function () { if (createFile($('ws-name').value)) { $('ws-name').value = ''; $('ws-newrow').hidden = true; } };
+  $('ws-cancel').onclick = function () { $('ws-newrow').hidden = true; wsNote(''); };
+  $('ws-name').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); $('ws-create').click(); } else if (e.key === 'Escape') $('ws-cancel').click(); });
+  $('ws-filter').addEventListener('input', renderFiles);
+  var clearArm = null;
+  $('ws-clear').onclick = function () {
+    var btn = $('ws-clear');
+    if (!clearArm) { btn.textContent = 'Sure? Clear all'; clearArm = setTimeout(function () { clearArm = null; btn.textContent = 'Clear all'; }, 3000); return; }
+    clearTimeout(clearArm); clearArm = null; btn.textContent = 'Clear all';
+    bundle = null; code.readOnly = false; code.value = ''; renderFiles(); refresh(); wsNote('Project cleared.'); $('loaded').textContent = '';
+  };
+  $('ws-list').addEventListener('click', function (e) {
+    var tg = e.target, d = tg.closest('[data-del]');
+    if (d) {
+      var dp = d.getAttribute('data-del');
+      if (wsArm === dp) { clearTimeout(wsArmT); wsArm = null; removeFile(dp); }
+      else { wsArm = dp; clearTimeout(wsArmT); wsArmT = setTimeout(function () { wsArm = null; renderFiles(); }, 3000); renderFiles(); }
+      return;
+    }
+    var rn = tg.closest('[data-rn]'); if (rn) { wsRename = rn.getAttribute('data-rn'); renderFiles(); return; }
+    var en = tg.closest('[data-entry]'); if (en) { bundle.entry = en.getAttribute('data-entry'); bundle.entryFixed = true; renderFiles(); refresh(); return; }
+    if (tg.closest('.ws-ren')) return;
+    var o = tg.closest('[data-open]'); if (o) selectFile(o.getAttribute('data-open'));
+  });
+  $('ws-list').addEventListener('keydown', function (e) {
+    var ri = e.target.closest ? e.target.closest('.ws-ren') : null; if (!ri) return;
+    if (e.key === 'Enter') { e.preventDefault(); var old = ri.getAttribute('data-ren'); wsRename = null; if (!renameFile(old, ri.value)) { wsRename = old; renderFiles(); } }
+    else if (e.key === 'Escape') { wsRename = null; renderFiles(); }
+  });
+  renderFiles();
 
   updateAccountUI();
   $('account-btn').onclick = function () { if (session) { sbLogOut(); clearSession(); } else { openAuth(); } };
@@ -1061,7 +1531,12 @@ textarea { flex: 1; min-height: 340px; margin: 10px 14px 14px; border: 1px solid
   $('ai-go').onclick = aiGenerate;
 
   setHost(HOSTS[load('launchpad-host', 'link')] ? load('launchpad-host', 'link') : 'link');
-  refresh(); renderList(); route();
+  $('sc-q').addEventListener('input', renderShowcase);
+  $('sc-refresh').onclick = function () { loadShowcase(); };
+  $('sc-more').onclick = function () { loadShowcase(true); };
+  $('sc-share').setAttribute('data-copy', baseUrl() + '#showcase');
+  $('sync-now').onclick = syncSites;
+  refresh(); renderList(); route(); loadShowcase();
 })();
 </script>
 <script>
